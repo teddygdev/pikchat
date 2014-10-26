@@ -1,0 +1,28 @@
+{
+  "name": "pikchat",
+  "version": "1.0.0",
+  "description": "TCP based Chat Server + Web Client with emphasis on stickers",
+  "main": "index.js",
+  "scripts": {
+    "test": "nodeunit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/teddygdev/pikchat.git"
+  },
+  "keywords": [
+    "tcp",
+    "chat",
+    "server",
+    "web",
+    "client",
+    "gif",
+    "stickers"
+  ],
+  "author": "Teddy G",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/teddygdev/pikchat/issues"
+  },
+  "homepage": "https://github.com/teddygdev/pikchat"
+}
