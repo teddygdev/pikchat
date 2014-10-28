@@ -114,11 +114,11 @@ var server = net.createServer(function(conn) {
         + '\n > * lobby (' + Object.keys(lobby).length + ')' 
         + '\n > * random (' + Object.keys(random).length + ')' 
         + '\n > * videogames (' + Object.keys(videogames).length + ')' 
-        + '\n > * anime (' + Object.keys(anime).length + ')\n'
+        + '\n > * anime (' + Object.keys(anime).length + ')'
         + '\n > * fitness (' + Object.keys(fitness).length + ')'
         + '\n > * advice (' + Object.keys(advice).length + ')' 
         + '\n > * technology (' + Object.keys(technology).length + ')' 
-        + '\n > * auto (' + Object.keys(auto).length + ')');
+        + '\n > * auto (' + Object.keys(auto).length + ')\n');
     }
 
     function changeRoom(roomObj, roomStr, data) {
