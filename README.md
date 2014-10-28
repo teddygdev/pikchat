@@ -11,6 +11,31 @@ Source to ASCII art: http://around140.en.utf8art.com/arc/goat_3.html
 
 Created by Teddy G for a job interview.
 
+## Features
+  * Super scalable!
+  * Low resource requirements!
+  * A total of 8 super awesome rooms, including a lobby!
+  * Pretty colors!
+  * Promotes synergy!
+  * Send private messages!
+  * Anti-spying! The server doesn't log any messages or IPs!
+  * List all users in a room!
+  * Why stop there?!?! List all users connected to the server!
+  * Easy login! No pesky passwords to remember!
+  * Cross-room private messaging!
+  * Mega intuitive! If stuck, just enter `/help`
+  * Disclaimer: Doesn't really have cat gifs... YET!
+
+## Planned features
+  * web interface
+  * cat gifs!
+  * use the giphy api to send stickers
+  * mobile friendly!
+  * room administration
+  * room moderation!
+  * utilize Redis for storing data
+  * angular.js frontend
+
 ## How to install on Ubuntu 14.10
 1. Open the Terminal
 2. `git clone https://github.com/teddygdev/pikchat.git` (Clone the repository)
@@ -27,6 +52,16 @@ Created by Teddy G for a job interview.
   * `server.listen(3000, function() {`
 7. Finally, start the server with `nodejs PikchatServer.js`
 8. Enjoy the fruits of my labor
+
+## How to connect
+1. `telnet x.x.x.x 3000` from the terminal and just wing it from there. I've made it very intuitive.
+  * `x.x.x.x` is the IP of the server. If running locally, it would be `localhost` or `127.0.0.1`
+  * Please do not use the windows commandline for telnet. You will greatly regret it.
+  * Putty is also not the best choice. At least it is less broken than cmd telnet.
+  * Best way to use it is from your friendly GNU/Linux terminal. Maybe OS X will work really awesome too.
+
+## Demo
+You can connect to my server as a client: `telnet pikchat.me 3000`
 
 ## More about the project
 ### Or the story explaining why pikchat doesn't have pictures
@@ -45,5 +80,7 @@ In conclusion, I would like to finish with a quote by Albert Camus.
 “I leave Sisyphus at the foot of the mountain. One always finds one's burden again. But Sisyphus teaches the higher fidelity that negates the gods and raises rocks. He too concludes that all is well. This universe henceforth without a master seems to him neither sterile nor futile. Each atom of that stone, each mineral flake of that night-filled mountain, in itself, forms a world. The struggle itself toward the heights is enough to fill a man's heart. One must imagine Sisyphus happy.”
 The way I see it, no matter how the interview goes, the struggle towards fulfilling the interview task was the most fulfilling for me. I learned so much in such a small time frame, knowledge I did not plan on acquiring anytime soon. And especially cloud servers and node.js, they opened so many doors, almost instantly. Both of those make so many future project possible, it is hard to imagine now not knowing how to work with those. Thank you for giving me this opportunity. I gained hundreds of times more from this interview than I initially thought I would.
 
+## Credits
+I would like to thank Guillermo Rauch for his book Smashing Node.js : JavaScript everywhere. Thanks to his TCP server starter, all of this is possible!
 
 
