@@ -143,11 +143,18 @@ var server = net.createServer(function(conn) {
             if (users[data]) {
                 conn.write('\033[93m > That nickname is already in use. Try again:\033[39m ');
                 return;
-            } else if (!data.match(/\S+/)) {
+            } 
+            else if (data.length > 21) { //because nobody wants enourmous names. 21 seems reasonable
+                conn.write('\033[93m > Your name is too long (>21 chars). Try again:\033[39m ');
+                return;
+            } 
+            else if (!data.match(/\S+/)) {
                 conn.write('\033[93m > You name cannot be a blank space. Try again:\033[39m ');
                 return;
-            } else {
+            } 
+            else {
                 data = data.replace('/',''); //do not want pesky names like /quit, /whisper, etc...
+                data = data.replace(/\s/g, ''); //single word names otherwise problems parsing /whisper
                 nickname = data;
                 users[nickname] = conn;
                 currentRoom[nickname] = conn;
