@@ -20,7 +20,10 @@
     "stickers"
   ],
   "dependencies": {
-    "moment": "2.8.3"
+    "moment": "latest",
+    "express": "latest",
+    "sockjs": "latest",
+    "ejs": "latest"
   },
   "author": "Teddy G",
   "license": "ISC",
