@@ -37,11 +37,11 @@ chat.on('connection', function(conn) {
     //var number = connections.length;
     var nickname;
 
-     conn.write(
-        '\n > welcome to \033[94mpi\033[93mK\033[92mchat \033[91ms\033[92me\033[93mr\033[94mv\033[95me\033[96mr\033[39m!'
-        + '\n > ' + count + ' other people are connected at this time to the server.' + '\n > You are automatically placed in the lobby.'
-        + '\n > Please write your name and press enter: '
-    );
+     conn.write(' > welcome to \033[94mpi\033[93mK\033[92mchat \033[91ms\033[92me\033[93mr\033[94mv\033[95me\033[96mr\033[39m!');
+     conn.write(' > ' + count + ' other people are connected at this time to the server.'); 
+     conn.write(' > You are automatically placed in the lobby.');
+     conn.write('\n > Please write your name and press enter: ');
+    
     
     function CurrentRoom()
     {
