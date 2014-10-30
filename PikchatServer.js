@@ -36,15 +36,23 @@ chat.on('connection', function(conn) {
     //connections.push(conn);
     //var number = connections.length;
     var nickname;
+
+     conn.write(
+        '\n > welcome to \033[94mpi\033[93mK\033[92mchat \033[91ms\033[92me\033[93mr\033[94mv\033[95me\033[96mr\033[39m!'
+        + '\n > ' + count + ' other people are connected at this time to the server.' + '\n > You are automatically placed in the lobby.'
+        + '\n > Please write your name and press enter: '
+    );
     
     function CurrentRoom()
     {
         this.value = lobby;
     }
     var currentRoom = new CurrentRoom();
+
     //conn.write("Welcome, User " + number);
     conn.on('data', function(data) {
         data = data.trim();
+        conn.write("You: " + data);
         // the first piece of data we expect is the nickname
         if (!nickname) {
             if (users[data]) {
@@ -58,7 +66,11 @@ chat.on('connection', function(conn) {
             else if (!data.match(/\S+/)) {
                 conn.write('You name cannot be a blank space. Try again: ');
                 return;
-            } 
+            }
+            else if ((data.toLowerCase()=="admin")||(data.toLowerCase()=="mod")||(data.toLowerCase()=="administrator")||(data.toLowerCase()=="moderator")||(data.toLowerCase()=="you")) {
+                conn.write('Those are reserved words. Choose a different name and try again: ');
+                return;
+            }  
             else {
                 data = data.replace('/',''); //do not want pesky names like /quit, /whisper, etc...
                 data = data.replace(/\s/g, ''); //single word names otherwise problems parsing /whisper
@@ -332,7 +344,11 @@ var server = net.createServer(function(conn) {
             else if (!data.match(/\S+/)) {
                 conn.write('\033[93m > You name cannot be a blank space. Try again:\033[39m ');
                 return;
-            } 
+            }
+            else if ((data.toLowerCase()=="admin")||(data.toLowerCase()=="mod")||(data.toLowerCase()=="administrator")||(data.toLowerCase()=="moderator")||(data.toLowerCase()=="you")) {
+                conn.write('\033[93m > Those are reserved words. Choose a different name and try again:\033[39m ');
+                return;
+            }   
             else {
                 data = data.replace('/',''); //do not want pesky names like /quit, /whisper, etc...
                 data = data.replace(/\s/g, ''); //single word names otherwise problems parsing /whisper
