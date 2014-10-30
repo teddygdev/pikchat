@@ -61,7 +61,7 @@ chat.on('connection', function(conn) {
                 users[nickname] = conn;
                 currentRoom[nickname] = conn;
                 conn.write('\n > You can get a list of commands by typing "\033[94m/\help\033[39m"\n');
-                broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', false, currentRoom);
+                broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', false, currentRoom, nickname);
             }
         }
         //once we have the nickname establishied we can focus on parsing commands
@@ -73,7 +73,7 @@ chat.on('connection', function(conn) {
         //count--;
         delete users[nickname];
         delete currentRoom[nickname];
-        broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', false, currentRoom);
+        broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', false, currentRoom, nickname);
         console.log(moment().format("MMMDD|HH:mm:ss") + " \033[91mUsers connected: " + count + "\033[39m");
     });
 });
@@ -116,11 +116,11 @@ chat.installHandlers(server, {prefix:'/chat'});
                 conn.write('\n\033[93m > Bye-bye! Have an amazingly awesome day!\033[39m\n');
                 conn.end();
             } else if (data == "/users") {
-                getUsers();
+                getUsers(conn, currentRoom, nickname);
             } else if (data == "/allusers") {
-                getAllUsers();
+                getAllUsers(conn, nickname);
             } else if (data == "/rooms") {
-                listRooms();
+                listRooms(currentRoom, conn);
             } else if (data.match(/^\/whisper/)) {
                 try { //have to do some bothersome parsing, but not worth it bringing a parsing module just for this
                     data = data.trim();
@@ -134,7 +134,7 @@ chat.installHandlers(server, {prefix:'/chat'});
                     if (message == "") conn.write(' \033[93m> You cannot send an empty message.\033[39m\n');
                     else {
                         try {
-                            whisper(message, name);
+                            whisper(message, name, nickname, conn);
                         } catch (err) {
                             conn.write(' \033[93m> Oh-oh. Error. Are you sure the receiver exists? Maybe you\'ve made a typo? Case matters!\033[39m\n');
                         }
@@ -148,7 +148,7 @@ chat.installHandlers(server, {prefix:'/chat'});
             } else if (data == "/leave") {
                 //reusing the /join here. This is what the /leave is supposed to do, right?
                 if (currentRoom != lobby) {
-                    changeRoom(lobby, 'lobby', 'lobby');
+                    changeRoom(lobby, 'lobby', 'lobby', currentRoom, nickname, conn);
                 } else {
                     conn.write('\n \033[93m> You are in the Lobby, you cannot go up any further.\033[39m' + '\n > You can quit the chat server with "\033[94m/\quit\033[39m".' + '\n > Or you could join a specific room with "\033[94m/\join [roomname]\033[39m".\n');
                 }
@@ -165,21 +165,21 @@ chat.installHandlers(server, {prefix:'/chat'});
                 }
                 if (pass === true) {
                     if (data == 'lobby') {
-                        changeRoom(lobby, 'lobby', data);
+                        changeRoom(lobby, 'lobby', data, currentRoom, nickname, conn);
                     } else if (data == 'random') {
-                        changeRoom(random, 'random', data);
+                        changeRoom(random, 'random', data, currentRoom, nickname, conn);
                     } else if (data == 'videogames') {
-                        changeRoom(videogames, 'videogames', data);
+                        changeRoom(videogames, 'videogames', data, currentRoom, nickname, conn);
                     } else if (data == 'anime') {
-                        changeRoom(anime, 'anime', data);
+                        changeRoom(anime, 'anime', data, currentRoom, nickname, conn);
                     } else if (data == 'fitness') {
-                        changeRoom(anime, 'fitness', data);
+                        changeRoom(anime, 'fitness', data, currentRoom, nickname, conn);
                     } else if (data == 'advice') {
-                        changeRoom(anime, 'advice', data);
+                        changeRoom(anime, 'advice', data, currentRoom, nickname, conn);
                     } else if (data == 'technology') {
-                        changeRoom(anime, 'technology', data);
+                        changeRoom(anime, 'technology', data, currentRoom, nickname, conn);
                     } else if (data == 'auto') {
-                        changeRoom(anime, 'auto', data);
+                        changeRoom(anime, 'auto', data), currentRoom, nickname, conn;
                     } else conn.write('\033[93m > Room "' + data + '" does not exist.\033[39m\n');
                 }
 
@@ -189,7 +189,7 @@ chat.installHandlers(server, {prefix:'/chat'});
             }
     }
 
-        function whisper(msg, receiver) {
+        function whisper(msg, receiver, nickname, conn) {
 
         if (nickname != receiver) {
             users[receiver].write('\033[95m' + moment().format("MMMDD|HH:mm:ss ") + 'from: ' + nickname + ' > ' + msg + '\033[39m\n');
@@ -200,7 +200,7 @@ chat.installHandlers(server, {prefix:'/chat'});
 
     }
 
-    function getRoomName() {
+    function getRoomName(currentRoom) {
         if (currentRoom == lobby) return "Lobby";
         if (currentRoom == random) return "Random";
         if (currentRoom == videogames) return "Videogames";
@@ -211,9 +211,9 @@ chat.installHandlers(server, {prefix:'/chat'});
         if (currentRoom == auto) return "Auto";
     }
 
-    function getUsers() {
+    function getUsers(conn, currentRoom, nickname) {
         var roomCount = 0;
-        conn.write('\n > \033[92mUsers\033[39m in room \033[92m' + getRoomName() + '\033[39m:');
+        conn.write('\n > \033[92mUsers\033[39m in room \033[92m' + getRoomName(currentRoom) + '\033[39m:');
         for (var i in currentRoom) {
             roomCount++;
             if (i == nickname) conn.write('\n * ' + i + ' \033[92m(** this is you **)\033[39m');
@@ -222,7 +222,7 @@ chat.installHandlers(server, {prefix:'/chat'});
         conn.write('\n > End of user list' + '\n > Users in room: \033[92m' + roomCount + '\033[39m\n > Total users in server: \033[92m' + count + '\033[39m\n');
     }
 
-    function getAllUsers() {
+    function getAllUsers(conn, nickname) {
         conn.write('\n > \033[92mUsers\033[39m in \033[92mthe Server\033[39m:');
         for (var i in users) {
             if (i == nickname) conn.write('\n * ' + i + ' \033[92m(** this is you **)\033[39m');
@@ -232,8 +232,8 @@ chat.installHandlers(server, {prefix:'/chat'});
     }
 
     //hardcoded rooms :( should implement better in the future
-    function listRooms() {
-        conn.write('\n > You are in: \033[92m' + getRoomName() + '\033[39m' 
+    function listRooms(currentRoom, conn) {
+        conn.write('\n > You are in: \033[92m' + getRoomName(currentRoom) + '\033[39m' 
         + '\n > \033[92mActive Rooms\033[39m are:' 
         + '\n > * lobby (' + Object.keys(lobby).length + ')' 
         + '\n > * random (' + Object.keys(random).length + ')' 
@@ -245,17 +245,17 @@ chat.installHandlers(server, {prefix:'/chat'});
         + '\n > * auto (' + Object.keys(auto).length + ')\n');
     }
 
-    function changeRoom(roomObj, roomStr, data) {
+    function changeRoom(roomObj, roomStr, data, currentRoom, nickname, conn) {
         if (currentRoom == roomObj) {
             conn.write(' \033[93m> You are already in room: ' + data + '\033[39m\n');
         } else {
             delete currentRoom[nickname];
-            broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', false, currentRoom);
+            broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', false, currentRoom, nickname);
             currentRoom = roomObj;
             currentRoom[nickname] = conn;
             conn.write('\n > Entering room: ' + data + '\n');
-            broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', false, currentRoom);
-            getUsers();
+            broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', false, currentRoom, nickname);
+            getUsers(conn, currentRoom, nickname);
         }
     }
 
@@ -332,7 +332,7 @@ var server = net.createServer(function(conn) {
                 users[nickname] = conn;
                 currentRoom[nickname] = conn;
                 conn.write('\n > You can get a list of commands by typing "\033[94m/\help\033[39m"\n');
-                broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', false, currentRoom);
+                broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', false, currentRoom, nickname);
             }
         }
         //once we have the nickname establishied we can focus on parsing commands
@@ -345,7 +345,7 @@ var server = net.createServer(function(conn) {
         count--;
         delete users[nickname];
         delete currentRoom[nickname];
-        broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', false, currentRoom);
+        broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', false, currentRoom, nickname);
         console.log(moment().format("MMMDD|HH:mm:ss") + " \033[91mUsers connected: " + count + "\033[39m");
     });
 });

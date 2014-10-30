@@ -1,0 +1,9 @@
+# Testing Procedure Logic
+To be implemented as automatic tests
+
+## TCP Part
+
+### Name
+1. node expect input name
+2. Press enter for blank name -> You name cannot be a blank space. Try again
+3. Enter some name -> you can get a list of commands by typing "/help"
