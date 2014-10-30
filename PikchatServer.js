@@ -103,10 +103,10 @@ var server = http.createServer(app).listen(app.get('port'), function(){
 });
 chat.installHandlers(server, {prefix:'/chat'});
     
-    function broadcast(msg, exceptMyself, room, nickname) {
-        for (var i in room) {
+    function broadcast(msg, exceptMyself, currentRoom, nickname) {
+        for (var i in currentRoom.value) {
             if (!exceptMyself || i != nickname) {
-                room[i].write(moment().format("MMMDD|HH:mm:ss") + msg);
+                currentRoom.value[i].write(moment().format("MMMDD|HH:mm:ss") + msg);
             }
         }
     }
@@ -147,7 +147,7 @@ chat.installHandlers(server, {prefix:'/chat'});
 
             } else if (data == "/leave") {
                 //reusing the /join here. This is what the /leave is supposed to do, right?
-                if (currentRoom != lobby) {
+                if (currentRoom.value != lobby) {
                     changeRoom(lobby, 'lobby', 'lobby', currentRoom, nickname, conn);
                 } else {
                     conn.write('\n \033[93m> You are in the Lobby, you cannot go up any further.\033[39m' + '\n > You can quit the chat server with "\033[94m/\quit\033[39m".' + '\n > Or you could join a specific room with "\033[94m/\join [roomname]\033[39m".\n');
@@ -173,13 +173,13 @@ chat.installHandlers(server, {prefix:'/chat'});
                     } else if (data == 'anime') {
                         changeRoom(anime, 'anime', data, currentRoom, nickname, conn);
                     } else if (data == 'fitness') {
-                        changeRoom(anime, 'fitness', data, currentRoom, nickname, conn);
+                        changeRoom(fitness, 'fitness', data, currentRoom, nickname, conn);
                     } else if (data == 'advice') {
-                        changeRoom(anime, 'advice', data, currentRoom, nickname, conn);
+                        changeRoom(advice, 'advice', data, currentRoom, nickname, conn);
                     } else if (data == 'technology') {
-                        changeRoom(anime, 'technology', data, currentRoom, nickname, conn);
+                        changeRoom(technology, 'technology', data, currentRoom, nickname, conn);
                     } else if (data == 'auto') {
-                        changeRoom(anime, 'auto', data), currentRoom, nickname, conn;
+                        changeRoom(auto, 'auto', data, currentRoom, nickname, conn);
                     } else conn.write('\033[93m > Room "' + data + '" does not exist.\033[39m\n');
                 }
 
@@ -201,20 +201,20 @@ chat.installHandlers(server, {prefix:'/chat'});
     }
 
     function getRoomName(currentRoom) {
-        if (currentRoom == lobby) return "Lobby";
-        if (currentRoom == random) return "Random";
-        if (currentRoom == videogames) return "Videogames";
-        if (currentRoom == anime) return "Anime";
-        if (currentRoom == fitness) return "Fitness";
-        if (currentRoom == advice) return "Advice";
-        if (currentRoom == technology) return "Technology";
-        if (currentRoom == auto) return "Auto";
+        if (currentRoom.value == lobby) return "Lobby";
+        if (currentRoom.value == random) return "Random";
+        if (currentRoom.value == videogames) return "Videogames";
+        if (currentRoom.value == anime) return "Anime";
+        if (currentRoom.value == fitness) return "Fitness";
+        if (currentRoom.value == advice) return "Advice";
+        if (currentRoom.value == technology) return "Technology";
+        if (currentRoom.value == auto) return "Auto";
     }
 
     function getUsers(conn, currentRoom, nickname) {
         var roomCount = 0;
         conn.write('\n > \033[92mUsers\033[39m in room \033[92m' + getRoomName(currentRoom) + '\033[39m:');
-        for (var i in currentRoom) {
+        for (var i in currentRoom.value) {
             roomCount++;
             if (i == nickname) conn.write('\n * ' + i + ' \033[92m(** this is you **)\033[39m');
             else conn.write('\n * ' + i);
@@ -246,13 +246,13 @@ chat.installHandlers(server, {prefix:'/chat'});
     }
 
     function changeRoom(roomObj, roomStr, data, currentRoom, nickname, conn) {
-        if (currentRoom == roomObj) {
+        if (currentRoom.value == roomObj) {
             conn.write(' \033[93m> You are already in room: ' + data + '\033[39m\n');
         } else {
-            delete currentRoom[nickname];
+            delete currentRoom.value[nickname];
             broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', false, currentRoom, nickname);
-            currentRoom = roomObj;
-            currentRoom[nickname] = conn;
+            currentRoom.value = roomObj;
+            currentRoom.value[nickname] = conn;
             conn.write('\n > Entering room: ' + data + '\n');
             broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', false, currentRoom, nickname);
             getUsers(conn, currentRoom, nickname);
@@ -300,8 +300,11 @@ var server = net.createServer(function(conn) {
     // the user nickname for the current connection
     var nickname;
     //defaulting to lobby
-    var currentRoom = lobby;
-
+    function CurrentRoom()
+    {
+        this.value = lobby;
+    }
+    var currentRoom = new CurrentRoom();
     
 
 
@@ -330,7 +333,7 @@ var server = net.createServer(function(conn) {
                 data = data.replace(/\s/g, ''); //single word names otherwise problems parsing /whisper
                 nickname = data;
                 users[nickname] = conn;
-                currentRoom[nickname] = conn;
+                currentRoom.value[nickname] = conn;
                 conn.write('\n > You can get a list of commands by typing "\033[94m/\help\033[39m"\n');
                 broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', false, currentRoom, nickname);
             }
@@ -344,7 +347,7 @@ var server = net.createServer(function(conn) {
     conn.on('close', function() {
         count--;
         delete users[nickname];
-        delete currentRoom[nickname];
+        delete currentRoom.value[nickname];
         broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', false, currentRoom, nickname);
         console.log(moment().format("MMMDD|HH:mm:ss") + " \033[91mUsers connected: " + count + "\033[39m");
     });
