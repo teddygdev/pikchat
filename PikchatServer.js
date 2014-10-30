@@ -36,22 +36,27 @@ chat.on('connection', function(conn) {
     //connections.push(conn);
     //var number = connections.length;
     var nickname;
-    var currentRoom=lobby;
+    
+    function CurrentRoom()
+    {
+        this.value = lobby;
+    }
+    var currentRoom = new CurrentRoom();
     //conn.write("Welcome, User " + number);
     conn.on('data', function(data) {
         data = data.trim();
         // the first piece of data we expect is the nickname
         if (!nickname) {
             if (users[data]) {
-                conn.write('\033[93m > That nickname is already in use. Try again:\033[39m ');
+                conn.write('That nickname is already in use. Try again: ');
                 return;
             } 
             else if (data.length > 21) { //because nobody wants enourmous names. 21 seems reasonable
-                conn.write('\033[93m > Your name is too long (>21 chars). Try again:\033[39m ');
+                conn.write('Your name is too long (>21 chars). Try again: ');
                 return;
             } 
             else if (!data.match(/\S+/)) {
-                conn.write('\033[93m > You name cannot be a blank space. Try again:\033[39m ');
+                conn.write('You name cannot be a blank space. Try again: ');
                 return;
             } 
             else {
@@ -59,9 +64,9 @@ chat.on('connection', function(conn) {
                 data = data.replace(/\s/g, ''); //single word names otherwise problems parsing /whisper
                 nickname = data;
                 users[nickname] = conn;
-                currentRoom[nickname] = conn;
-                conn.write('\n > You can get a list of commands by typing "\033[94m/\help\033[39m"\n');
-                broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', false, currentRoom, nickname);
+                currentRoom.value[nickname] = conn;
+                conn.write('You can get a list of commands by typing "/\help"');
+                broadcast(' > ' + nickname + ' joined the room', false, currentRoom, nickname);
             }
         }
         //once we have the nickname establishied we can focus on parsing commands
@@ -72,9 +77,9 @@ chat.on('connection', function(conn) {
     conn.on('close', function() {
         //count--;
         delete users[nickname];
-        delete currentRoom[nickname];
-        broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', false, currentRoom, nickname);
-        console.log(moment().format("MMMDD|HH:mm:ss") + " \033[91mUsers connected: " + count + "\033[39m");
+        delete currentRoom.value[nickname];
+        broadcast(' > ' + nickname + ' left the room', false, currentRoom, nickname);
+        console.log(moment().format("MMMDD|HH:mm:ss") + " Users connected: " + count + "");
     });
 });
 
