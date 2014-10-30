@@ -33,168 +33,11 @@ var connections = [];
 
 var chat = sockjs.createServer();
 chat.on('connection', function(conn) {
-    connections.push(conn);
-    var number = connections.length;
-    conn.write("Welcome, User " + number);
-    conn.on('data', function(message) {
-        for (var ii=0; ii < connections.length; ii++) {
-            connections[ii].write("User " + number + " says: " + message);
-        }
-    });
-    conn.on('close', function() {
-        for (var ii=0; ii < connections.length; ii++) {
-            connections[ii].write("User " + number + " has disconnected");
-        }
-    });
-});
-
-// all environments
-app.set('port', process.env.PORT || 3000);
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
-//app.use(express.favicon());
-//app.use(express.logger('dev'));
-//app.use(express.json());
-//app.use(express.urlencoded());
-//a/p.use(express.methodOverride());
-//app.use(app.router);
-app.use(express.static(path.join(__dirname, 'public')));
-
-// development only
-//if ('development' == app.get('env')) {
-//  app.use(express.errorHandler());
-//}
-
-app.get('/', routes.index);
-app.get('/users', user.list);
-
-var server = http.createServer(app).listen(app.get('port'), function(){
-  console.log('Express server listening on port ' + app.get('port'));
-});
-chat.installHandlers(server, {prefix:'/chat'});
-
-
-////////////////
-//create the server
-var server = net.createServer(function(conn) {
-
-//some welcoming and relaxing ascii art    
-    conn.write(
-    '\n    　　　　　　　　 ,.'
-    +'\n　　　　　 　　 /ﾉ'
-    +'\n　 　 (＼;\'\'~⌒ヾ,'
-    +'\n　　　 ~\'ﾐ　 ・　ｪ)　　　piKchat'
-    +'\n　　　　 .,ゝ　 i\"'
-    +'\n　ヘ\'\"\"~　　　ﾐ 　　　\゛　　～8'
-    +'\n　　,)　ﾉ,,_,　,;\'ヽ) 　　　（○）　　（○）'
-    +'\n　　し\'し\'　l,ﾉ 　　　　　 ヽ|〃　　ヽ|〃'
-    );
-//using ansi escape codes for coloring
-    conn.write(
-        '\n > welcome to \033[94mpi\033[93mK\033[92mchat \033[91ms\033[92me\033[93mr\033[94mv\033[95me\033[96mr\033[39m!'
-        + '\n > ' + count + ' other people are connected at this time to the server.' + '\n > You are automatically placed in the lobby.'
-        + '\n > Please write your name and press enter: '
-    );
-    count++;
-    //for keeping track of connected users
-    console.log(moment().format("MMMDD|HH:mm:ss") + " \033[92mUsers connected: " + count + "\033[39m");
-
-    //to stringify all incoming data
-    conn.setEncoding('utf8');
-
-    //this timeout is pretty much useless. when a message is broadcasted,
-    //all receivers have their timeout reset. 
-    //maybe for preventing server being full with no one writing for a day?
-    /*conn.setTimeout(86400000, function(){
-          conn.write('\n > You timed-out after 24 hours. Disconnecting!\n');
-          conn.destroy();
-      });
-    */
-
-    // the user nickname for the current connection
+    //connections.push(conn);
+    //var number = connections.length;
     var nickname;
-    //defaulting to lobby
-    var currentRoom = lobby;
-
-    function broadcast(msg, exceptMyself, room) {
-        for (var i in room) {
-            if (!exceptMyself || i != nickname) {
-                room[i].write(moment().format("MMMDD|HH:mm:ss") + msg);
-            }
-        }
-    }
-
-    function whisper(msg, receiver) {
-
-        if (nickname != receiver) {
-            users[receiver].write('\033[95m' + moment().format("MMMDD|HH:mm:ss ") + 'from: ' + nickname + ' > ' + msg + '\033[39m\n');
-            conn.write('\033[95m' + moment().format("MMMDD|HH:mm:ss ") + 'to: ' + receiver + ' > ' + msg + '\033[39m\n');
-        } else {
-            conn.write('\033[93m > You cannot send a whisper to yourself.\033[39m\n');
-        }
-
-    }
-
-    function getRoomName() {
-        if (currentRoom == lobby) return "Lobby";
-        if (currentRoom == random) return "Random";
-        if (currentRoom == videogames) return "Videogames";
-        if (currentRoom == anime) return "Anime";
-        if (currentRoom == fitness) return "Fitness";
-        if (currentRoom == advice) return "Advice";
-        if (currentRoom == technology) return "Technology";
-        if (currentRoom == auto) return "Auto";
-    }
-
-    function getUsers() {
-        var roomCount = 0;
-        conn.write('\n > \033[92mUsers\033[39m in room \033[92m' + getRoomName() + '\033[39m:');
-        for (var i in currentRoom) {
-            roomCount++;
-            if (i == nickname) conn.write('\n * ' + i + ' \033[92m(** this is you **)\033[39m');
-            else conn.write('\n * ' + i);
-        }
-        conn.write('\n > End of user list' + '\n > Users in room: \033[92m' + roomCount + '\033[39m\n > Total users in server: \033[92m' + count + '\033[39m\n');
-    }
-
-    function getAllUsers() {
-        conn.write('\n > \033[92mUsers\033[39m in \033[92mthe Server\033[39m:');
-        for (var i in users) {
-            if (i == nickname) conn.write('\n * ' + i + ' \033[92m(** this is you **)\033[39m');
-            else conn.write('\n * ' + i);
-        }
-        conn.write('\n > End of user list' + '\n > Total users in server: \033[92m' + count + '\033[39m\n');
-    }
-
-    //hardcoded rooms :( should implement better in the future
-    function listRooms() {
-        conn.write('\n > You are in: \033[92m' + getRoomName() + '\033[39m' 
-        + '\n > \033[92mActive Rooms\033[39m are:' 
-        + '\n > * lobby (' + Object.keys(lobby).length + ')' 
-        + '\n > * random (' + Object.keys(random).length + ')' 
-        + '\n > * videogames (' + Object.keys(videogames).length + ')' 
-        + '\n > * anime (' + Object.keys(anime).length + ')'
-        + '\n > * fitness (' + Object.keys(fitness).length + ')'
-        + '\n > * advice (' + Object.keys(advice).length + ')' 
-        + '\n > * technology (' + Object.keys(technology).length + ')' 
-        + '\n > * auto (' + Object.keys(auto).length + ')\n');
-    }
-
-    function changeRoom(roomObj, roomStr, data) {
-        if (currentRoom == roomObj) {
-            conn.write(' \033[93m> You are already in room: ' + data + '\033[39m\n');
-        } else {
-            delete currentRoom[nickname];
-            broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', false, currentRoom);
-            currentRoom = roomObj;
-            currentRoom[nickname] = conn;
-            conn.write('\n > Entering room: ' + data + '\n');
-            broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', false, currentRoom);
-            getUsers();
-        }
-    }
-
-    //this is the entry point of the first input
+    var currentRoom=lobby;
+    //conn.write("Welcome, User " + number);
     conn.on('data', function(data) {
         data = data.trim();
         // the first piece of data we expect is the nickname
@@ -223,7 +66,53 @@ var server = net.createServer(function(conn) {
         }
         //once we have the nickname establishied we can focus on parsing commands
         else {
-            if (data == "/quit") {
+            processData(data, currentRoom, nickname, conn);
+        }
+    });
+    conn.on('close', function() {
+        //count--;
+        delete users[nickname];
+        delete currentRoom[nickname];
+        broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', false, currentRoom);
+        console.log(moment().format("MMMDD|HH:mm:ss") + " \033[91mUsers connected: " + count + "\033[39m");
+    });
+});
+
+// all environments
+app.set('port', process.env.PORT || 3000);
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+//app.use(express.favicon());
+//app.use(express.logger('dev'));
+//app.use(express.json());
+//app.use(express.urlencoded());
+//a/p.use(express.methodOverride());
+//app.use(app.router);
+app.use(express.static(path.join(__dirname, 'public')));
+
+// development only
+//if ('development' == app.get('env')) {
+//  app.use(express.errorHandler());
+//}
+
+app.get('/', routes.index);
+app.get('/users', user.list);
+
+var server = http.createServer(app).listen(app.get('port'), function(){
+  console.log('Express server listening on port ' + app.get('port'));
+});
+chat.installHandlers(server, {prefix:'/chat'});
+    
+    function broadcast(msg, exceptMyself, room, nickname) {
+        for (var i in room) {
+            if (!exceptMyself || i != nickname) {
+                room[i].write(moment().format("MMMDD|HH:mm:ss") + msg);
+            }
+        }
+    }
+
+    function processData(data, currentRoom, nickname, conn) {
+        if (data == "/quit") {
                 conn.write('\n\033[93m > Bye-bye! Have an amazingly awesome day!\033[39m\n');
                 conn.end();
             } else if (data == "/users") {
@@ -296,8 +185,159 @@ var server = net.createServer(function(conn) {
 
             } else {
                 // if we have the name and it is not a command, it can only be a message
-                broadcast('\033[96m > ' + nickname + ':\033[39m ' + data + '\n', true, currentRoom);
+                broadcast('\033[96m > ' + nickname + ':\033[39m ' + data + '\n', true, currentRoom, nickname);
             }
+    }
+
+        function whisper(msg, receiver) {
+
+        if (nickname != receiver) {
+            users[receiver].write('\033[95m' + moment().format("MMMDD|HH:mm:ss ") + 'from: ' + nickname + ' > ' + msg + '\033[39m\n');
+            conn.write('\033[95m' + moment().format("MMMDD|HH:mm:ss ") + 'to: ' + receiver + ' > ' + msg + '\033[39m\n');
+        } else {
+            conn.write('\033[93m > You cannot send a whisper to yourself.\033[39m\n');
+        }
+
+    }
+
+    function getRoomName() {
+        if (currentRoom == lobby) return "Lobby";
+        if (currentRoom == random) return "Random";
+        if (currentRoom == videogames) return "Videogames";
+        if (currentRoom == anime) return "Anime";
+        if (currentRoom == fitness) return "Fitness";
+        if (currentRoom == advice) return "Advice";
+        if (currentRoom == technology) return "Technology";
+        if (currentRoom == auto) return "Auto";
+    }
+
+    function getUsers() {
+        var roomCount = 0;
+        conn.write('\n > \033[92mUsers\033[39m in room \033[92m' + getRoomName() + '\033[39m:');
+        for (var i in currentRoom) {
+            roomCount++;
+            if (i == nickname) conn.write('\n * ' + i + ' \033[92m(** this is you **)\033[39m');
+            else conn.write('\n * ' + i);
+        }
+        conn.write('\n > End of user list' + '\n > Users in room: \033[92m' + roomCount + '\033[39m\n > Total users in server: \033[92m' + count + '\033[39m\n');
+    }
+
+    function getAllUsers() {
+        conn.write('\n > \033[92mUsers\033[39m in \033[92mthe Server\033[39m:');
+        for (var i in users) {
+            if (i == nickname) conn.write('\n * ' + i + ' \033[92m(** this is you **)\033[39m');
+            else conn.write('\n * ' + i);
+        }
+        conn.write('\n > End of user list' + '\n > Total users in server: \033[92m' + count + '\033[39m\n');
+    }
+
+    //hardcoded rooms :( should implement better in the future
+    function listRooms() {
+        conn.write('\n > You are in: \033[92m' + getRoomName() + '\033[39m' 
+        + '\n > \033[92mActive Rooms\033[39m are:' 
+        + '\n > * lobby (' + Object.keys(lobby).length + ')' 
+        + '\n > * random (' + Object.keys(random).length + ')' 
+        + '\n > * videogames (' + Object.keys(videogames).length + ')' 
+        + '\n > * anime (' + Object.keys(anime).length + ')'
+        + '\n > * fitness (' + Object.keys(fitness).length + ')'
+        + '\n > * advice (' + Object.keys(advice).length + ')' 
+        + '\n > * technology (' + Object.keys(technology).length + ')' 
+        + '\n > * auto (' + Object.keys(auto).length + ')\n');
+    }
+
+    function changeRoom(roomObj, roomStr, data) {
+        if (currentRoom == roomObj) {
+            conn.write(' \033[93m> You are already in room: ' + data + '\033[39m\n');
+        } else {
+            delete currentRoom[nickname];
+            broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', false, currentRoom);
+            currentRoom = roomObj;
+            currentRoom[nickname] = conn;
+            conn.write('\n > Entering room: ' + data + '\n');
+            broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', false, currentRoom);
+            getUsers();
+        }
+    }
+
+
+////////////////
+//create the server
+var server = net.createServer(function(conn) {
+
+//some welcoming and relaxing ascii art    
+    conn.write(
+    '\n    　　　　　　　　 ,.'
+    +'\n　　　　　 　　 /ﾉ'
+    +'\n　 　 (＼;\'\'~⌒ヾ,'
+    +'\n　　　 ~\'ﾐ　 ・　ｪ)　　　piKchat'
+    +'\n　　　　 .,ゝ　 i\"'
+    +'\n　ヘ\'\"\"~　　　ﾐ 　　　\゛　　～8'
+    +'\n　　,)　ﾉ,,_,　,;\'ヽ) 　　　（○）　　（○）'
+    +'\n　　し\'し\'　l,ﾉ 　　　　　 ヽ|〃　　ヽ|〃'
+    );
+//using ansi escape codes for coloring
+    conn.write(
+        '\n > welcome to \033[94mpi\033[93mK\033[92mchat \033[91ms\033[92me\033[93mr\033[94mv\033[95me\033[96mr\033[39m!'
+        + '\n > ' + count + ' other people are connected at this time to the server.' + '\n > You are automatically placed in the lobby.'
+        + '\n > Please write your name and press enter: '
+    );
+    count++;
+    //for keeping track of connected users
+    console.log(moment().format("MMMDD|HH:mm:ss") + " \033[92mUsers connected: " + count + "\033[39m");
+
+    //to stringify all incoming data
+    conn.setEncoding('utf8');
+
+    //this timeout is pretty much useless. when a message is broadcasted,
+    //all receivers have their timeout reset. 
+    //maybe for preventing server being full with no one writing for a day?
+    /*conn.setTimeout(86400000, function(){
+          conn.write('\n > You timed-out after 24 hours. Disconnecting!\n');
+          conn.destroy();
+      });
+    */
+
+    // the user nickname for the current connection
+    var nickname;
+    //defaulting to lobby
+    var currentRoom = lobby;
+
+    
+
+
+
+
+
+    //this is the entry point of the first input
+    conn.on('data', function(data) {
+        data = data.trim();
+        // the first piece of data we expect is the nickname
+        if (!nickname) {
+            if (users[data]) {
+                conn.write('\033[93m > That nickname is already in use. Try again:\033[39m ');
+                return;
+            } 
+            else if (data.length > 21) { //because nobody wants enourmous names. 21 seems reasonable
+                conn.write('\033[93m > Your name is too long (>21 chars). Try again:\033[39m ');
+                return;
+            } 
+            else if (!data.match(/\S+/)) {
+                conn.write('\033[93m > You name cannot be a blank space. Try again:\033[39m ');
+                return;
+            } 
+            else {
+                data = data.replace('/',''); //do not want pesky names like /quit, /whisper, etc...
+                data = data.replace(/\s/g, ''); //single word names otherwise problems parsing /whisper
+                nickname = data;
+                users[nickname] = conn;
+                currentRoom[nickname] = conn;
+                conn.write('\n > You can get a list of commands by typing "\033[94m/\help\033[39m"\n');
+                broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', false, currentRoom);
+            }
+        }
+        //once we have the nickname establishied we can focus on parsing commands
+        else {
+            processData(data, currentRoom, nickname, conn);
         }
     });
 
