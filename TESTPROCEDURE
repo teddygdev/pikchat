@@ -1,6 +1,26 @@
 # Testing Procedure Logic
 To be implemented as automatic tests
 
+## Terminal Color Chart
+//color refernce
++'\n 90 \033[90mcolor\033[39m'    //black
++'\n 91 \033[91mcolor\033[39m'    //red
++'\n 92 \033[92mcolor\033[39m'    //green
++'\n 93 \033[93mcolor\033[39m'    //yellow
++'\n 94 \033[94mcolor\033[39m'    //blue
++'\n 95 \033[95mcolor\033[39m'    //purple
++'\n 96 \033[96mcolor\033[39m'    //cyan
++'\n 97 \033[97mcolor\033[39m'    //white
++'\n 100 \033[100mcolor\033[49m'  //black
++'\n 101 \033[101mcolor\033[49m'  //red
++'\n 102 \033[102mcolor\033[49m'  //green
++'\n 103 \033[103mcolor\033[49m'  //yellow
++'\n 104 \033[104mcolor\033[49m'  //blue
++'\n 105 \033[105mcolor\033[49m'  //purple
++'\n 106 \033[106mcolor\033[49m'  //cyan
++'\n 107 \033[107mcolor\033[49m'  //white
+
+
 ## TCP Part
 
 ### Name
