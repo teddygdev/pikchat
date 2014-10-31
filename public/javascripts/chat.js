@@ -8,7 +8,7 @@ function ChatCtrl($scope) {
 
   sock.onmessage = function(e) {
   	e.data = e.data.replace(/\[90m|\[91m|\[92m|\[93m|\[94m|\[95m|\[96m|\[97m|\[39m/g, '');
-  	e.data = e.data.replace(/\s>\s/, '');
+  	e.data = e.data.replace(/\s>/, '');
     $scope.messages.push(e.data);
     $scope.$apply();
   };

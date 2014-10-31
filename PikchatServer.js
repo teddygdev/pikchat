@@ -78,7 +78,7 @@ chat.on('connection', function(conn) {
                 users[nickname] = conn;
                 currentRoom.value[nickname] = conn;
                 conn.write('You can get a list of commands by typing "/\help"');
-                broadcast(' > ' + nickname + ' joined the room', false, currentRoom, nickname);
+                broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', false, currentRoom, nickname);
             }
         }
         //once we have the nickname establishied we can focus on parsing commands
@@ -90,7 +90,7 @@ chat.on('connection', function(conn) {
         //count--;
         delete users[nickname];
         delete currentRoom.value[nickname];
-        broadcast(' > ' + nickname + ' left the room', false, currentRoom, nickname);
+        broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', false, currentRoom, nickname);
         console.log(moment().format("MMMDD|HH:mm:ss") + " Users connected: " + count + "");
     });
 });
@@ -138,7 +138,7 @@ chat.installHandlers(server, {prefix:'/chat'});
                 getAllUsers(conn, nickname);
             } else if (data == "/rooms") {
                 listRooms(currentRoom, conn);
-            } else if (data.match(/^\/whisper/)) {
+            } else if (data.match(/^\/whisper|^\/w/)) {
                 try { //have to do some bothersome parsing, but not worth it bringing a parsing module just for this
                     data = data.trim();
                     var name = data.split(/\s+/)[1];
