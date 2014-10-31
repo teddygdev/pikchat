@@ -37,10 +37,10 @@ chat.on('connection', function(conn) {
     //var number = connections.length;
     var nickname;
 
-     conn.write(' > welcome to \033[94mpi\033[93mK\033[92mchat \033[91ms\033[92me\033[93mr\033[94mv\033[95me\033[96mr\033[39m!');
-     conn.write(' > ' + count + ' other people are connected at this time to the server.'); 
-     conn.write(' > You are automatically placed in the lobby.');
-     conn.write('\n > Please write your name and press enter: ');
+     conn.write('Welcome to \033[94mpi\033[93mK\033[92mchat \033[91ms\033[92me\033[93mr\033[94mv\033[95me\033[96mr\033[39m!');
+     conn.write(count + ' other people are connected at this time to the server.'); 
+     conn.write('You are automatically placed in the lobby.');
+     conn.write('Please write your name and press enter: ');
     
     
     function CurrentRoom()
@@ -160,14 +160,28 @@ chat.installHandlers(server, {prefix:'/chat'});
                     conn.write(' \033[93m> Oh-oh. Error. Did you add a receiver and a message?\033[39m\n');
                 }
             } else if (data == "/help") {
-                conn.write('\n > The list of possible commands are:' + '\n > \033[94m\/help\033[39m - Show the help screen with commands' + '\n > \033[94m\/quit\033[39m - Disconnects from the chat server and exits' + '\n > \033[94m\/leave\033[39m - Leaves current room and goes back to lobby' + '\n > \033[94m\/rooms\033[39m - Shows a list of all possible rooms and people in them' + '\n > \033[94m\/join [roomname]\033[39m - Joins one of the existing rooms' + '\n > \033[94m\/users\033[39m - Shows a list of all connected people to the current room' + '\n > \033[94m\/allusers\033[39m - Shows a list of all connected people to server' + '\n > \033[94m\/whisper [receiver] [message]\033[39m - Send a private message. Can be any user in any room' + '\n > Q: How do I change my name?' + '\n > A: You have to exit the server and rejoin to get a new name.' + '\n > Q: Can I create a chat room?' + '\n > A: Not as of now.\n');
+                conn.write('\n > The list of possible commands are:'); 
+                conn.write('\n > \033[94m\/help\033[39m - Show the help screen with commands');
+                conn.write('\n > \033[94m\/quit\033[39m - Disconnects from the chat server and exits');
+                conn.write('\n > \033[94m\/leave\033[39m - Leaves current room and goes back to lobby');
+                conn.write('\n > \033[94m\/rooms\033[39m - Shows a list of all possible rooms and people in them');
+                conn.write('\n > \033[94m\/join [roomname]\033[39m - Joins one of the existing rooms');
+                conn.write('\n > \033[94m\/users\033[39m - Shows a list of all connected people to the current room');
+                conn.write('\n > \033[94m\/allusers\033[39m - Shows a list of all connected people to server');
+                conn.write('\n > \033[94m\/whisper [receiver] [message]\033[39m - Send a private message. Can be any user in any room');
+                conn.write('\n > Q: How do I change my name?');
+                conn.write('\n > A: You have to exit the server and rejoin to get a new name.');
+                conn.write('\n > Q: Can I create a chat room?');
+                conn.write('\n > A: Not as of now.\n');
 
             } else if (data == "/leave") {
                 //reusing the /join here. This is what the /leave is supposed to do, right?
                 if (currentRoom.value != lobby) {
                     changeRoom(lobby, 'lobby', 'lobby', currentRoom, nickname, conn);
                 } else {
-                    conn.write('\n \033[93m> You are in the Lobby, you cannot go up any further.\033[39m' + '\n > You can quit the chat server with "\033[94m/\quit\033[39m".' + '\n > Or you could join a specific room with "\033[94m/\join [roomname]\033[39m".\n');
+                    conn.write('\n \033[93m> You are in the Lobby, you cannot go up any further.\033[39m');
+                    conn.write('\n > You can quit the chat server with "\033[94m/\quit\033[39m".');
+                    conn.write('\n > Or you could join a specific room with "\033[94m/\join [roomname]\033[39m".\n');
                 }
             } else if (data.match(/^\/join/)) {
                 //some mild parsing again, but not as bad the the /whisper parsing
@@ -236,7 +250,9 @@ chat.installHandlers(server, {prefix:'/chat'});
             if (i == nickname) conn.write('\n * ' + i + ' \033[92m(** this is you **)\033[39m');
             else conn.write('\n * ' + i);
         }
-        conn.write('\n > End of user list' + '\n > Users in room: \033[92m' + roomCount + '\033[39m\n > Total users in server: \033[92m' + count + '\033[39m\n');
+        conn.write('\n > End of user list');
+        conn.write('\n > Users in room: \033[92m' + roomCount );
+        conn.write('\033[39m\n > Total users in server: \033[92m' + count + '\033[39m\n');
     }
 
     function getAllUsers(conn, nickname) {
@@ -245,21 +261,22 @@ chat.installHandlers(server, {prefix:'/chat'});
             if (i == nickname) conn.write('\n * ' + i + ' \033[92m(** this is you **)\033[39m');
             else conn.write('\n * ' + i);
         }
-        conn.write('\n > End of user list' + '\n > Total users in server: \033[92m' + count + '\033[39m\n');
+        conn.write('\n > End of user list');
+        conn.write('\n > Total users in server: \033[92m' + count + '\033[39m\n');
     }
 
     //hardcoded rooms :( should implement better in the future
     function listRooms(currentRoom, conn) {
-        conn.write('\n > You are in: \033[92m' + getRoomName(currentRoom) + '\033[39m' 
-        + '\n > \033[92mActive Rooms\033[39m are:' 
-        + '\n > * lobby (' + Object.keys(lobby).length + ')' 
-        + '\n > * random (' + Object.keys(random).length + ')' 
-        + '\n > * videogames (' + Object.keys(videogames).length + ')' 
-        + '\n > * anime (' + Object.keys(anime).length + ')'
-        + '\n > * fitness (' + Object.keys(fitness).length + ')'
-        + '\n > * advice (' + Object.keys(advice).length + ')' 
-        + '\n > * technology (' + Object.keys(technology).length + ')' 
-        + '\n > * auto (' + Object.keys(auto).length + ')\n');
+        conn.write('\n > You are in: \033[92m' + getRoomName(currentRoom) + '\033[39m');
+        conn.write('\n > \033[92mActive Rooms\033[39m are:');
+        conn.write('\n > * lobby (' + Object.keys(lobby).length + ')' );
+        conn.write('\n > * random (' + Object.keys(random).length + ')' );
+        conn.write('\n > * videogames (' + Object.keys(videogames).length + ')' );
+        conn.write('\n > * anime (' + Object.keys(anime).length + ')');
+        conn.write('\n > * fitness (' + Object.keys(fitness).length + ')');
+        conn.write('\n > * advice (' + Object.keys(advice).length + ')' );
+        conn.write('\n > * technology (' + Object.keys(technology).length + ')' );
+        conn.write('\n > * auto (' + Object.keys(auto).length + ')\n');
     }
 
     function changeRoom(roomObj, roomStr, data, currentRoom, nickname, conn) {
