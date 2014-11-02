@@ -7,68 +7,48 @@
     box-shadow: 0 0 2px black;
 }
 
-.bubble {
-    background-color: #F2F2F2;
-    border-radius:    5px;
-    border:           $border;
-    box-shadow:       $shadow;
-    display:          block;
-    padding:          10px 18px;
-    margin:           1em ($shadow_radius + $nose_size);
-    position:         relative;
-    vertical-align:   top;
+.msg {
+  padding: 4px 14px 4px 14px;
+  margin-bottom: 4px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  background-color: #fcf8e3;
+  border: 1px solid #fbeed5;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
 }
-
-.tail {
-    position: absolute;
-    height:  ($shadow_radius + $nose_size);
-    width:   ($shadow_radius + $nose_size);
-    overflow: hidden;
-
-    &:before {
-        border:            $border;
-        background-color:  #F2F2F2;
-        box-shadow:        $shadow;
-        content:           "\00a0";
-
-        display:           block;
-        position:          absolute;
-        top:               0px;
-        height:            $nose_size;
-        width:             $nose_size;
-    }
+.msg-heading {
+  color: inherit;
 }
-
-
-.bubble.left {
-    text-align: left;
-
-    .tail {
-        top:      $nose_size;
-        left:   -($shadow_radius + $nose_size);
-
-        &:before {
-            left:              $nose_size;
-            -webkit-transform: skewX( -45deg );
-            -moz-transform:    skewX( -45deg );
-            -o-transform:      skewX( -45deg );
-        }
-    }
+.msg .close {
+  position: relative;
+  top: -2px;
+  right: -21px;
+  line-height: 18px;
 }
-
-
-.bubble.right {
-    text-align: right;
-    
-    .tail {
-        top:      $nose_size;
-        right:   -($shadow_radius + $nose_size);
-
-        &:before {
-            right:              $nose_size;
-            -webkit-transform: skewX( 45deg );
-            -moz-transform:    skewX( 45deg );
-            -o-transform:      skewX( 45deg );
-        }
-    }
+.msg-success {
+  background-color: #dff0d8;
+  border-color: #d6e9c6;
+  color: #468847;
+}
+.msg-danger,
+.msg-error {
+  background-color: #f2dede;
+  border-color: #eed3d7;
+  color: #b94a48;
+}
+.msg-info {
+  background-color: #d9edf7;
+  border-color: #bce8f1;
+}
+.msg-block {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+.msg-block > p,
+.msg-block > ul {
+  margin-bottom: 0;
+}
+.msg-block p + p {
+  margin-top: 5px;
 }

@@ -43,12 +43,12 @@
                 <div ng-style="{height: valHeight}" class="chatbox">
                   <div class="panel-body">
                       <div ng-repeat="msg in messages track by $index">
-                       
-                      {{msg.time}} &nbsp {{msg.sender}} &nbsp {{msg.text}}
-                      </div>
+                        <div class="msg msg-info">
+                          <strong>{{msg.sender}}</strong><span class="pull-right">{{msg.time}}</span>
+                          <div>{{msg.text}}</div>
 
-    
-                    
+                        </div> 
+                      </div>
                   </div>
                 </div>  
               </div>
