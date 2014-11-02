@@ -21,7 +21,7 @@ var random = {},
 
 var express = require('express');
 var routes = require('./routes');
-var user = require('./routes/user');
+//var user = require('./routes/user');
 var http = require('http');
 var path = require('path');
 
@@ -96,16 +96,16 @@ chat.on('connection', function(conn) {
 });
 
 // all environments
+app.engine('html', require('ejs').renderFile);
 app.set('port', process.env.PORT || 3000);
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, '/views'));
+app.set('view engine', 'html');
 //app.use(express.favicon());
 //app.use(express.logger('dev'));
 //app.use(express.json());
 //app.use(express.urlencoded());
 //a/p.use(express.methodOverride());
-//app.use(app.router);
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'app')));
 
 // development only
 //if ('development' == app.get('env')) {
@@ -113,7 +113,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 //}
 
 app.get('/', routes.index);
-app.get('/users', user.list);
+//app.get('/partials/:name', routes.partials);  //future proof
+app.get('*', routes.index);
 
 var server = http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
@@ -123,7 +124,7 @@ chat.installHandlers(server, {prefix:'/chat'});
     function broadcast(msg, exceptMyself, currentRoom, nickname) {
         for (var i in currentRoom.value) {
             if (!exceptMyself || i != nickname) {
-                currentRoom.value[i].write(moment().format("MMMDD|HH:mm:ss") + msg);
+                currentRoom.value[i].write('[' + moment().format("MMM DD HH:mm:ss") + ']' + msg);
             }
         }
     }
@@ -216,7 +217,7 @@ chat.installHandlers(server, {prefix:'/chat'});
 
             } else {
                 // if we have the name and it is not a command, it can only be a message
-                broadcast('\033[96m > ' + nickname + ':\033[39m ' + data + '\n', true, currentRoom, nickname);
+                broadcast('\033[96m >' + nickname + '<\033[39m ' + data + '\n', true, currentRoom, nickname);
             }
     }
 
