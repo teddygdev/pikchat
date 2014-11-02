@@ -52,7 +52,7 @@ chat.on('connection', function(conn) {
     //conn.write("Welcome, User " + number);
     conn.on('data', function(data) {
         data = data.trim();
-        conn.write("You: " + data);
+        conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >You< ' + data);
         // the first piece of data we expect is the nickname
         if (!nickname) {
             if (users[data]) {

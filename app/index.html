@@ -43,7 +43,7 @@
                 <div ng-style="{height: valHeight}" class="chatbox">
                   <div class="panel-body">
                       <div ng-repeat="msg in messages track by $index">
-                        <div class="msg msg-info">
+                        <div class="msg msg-info" style="background-color:{{msg.color}}; color:{{msg.txt}}; border-color:black">
                           <strong>{{msg.sender}}</strong><span class="pull-right">{{msg.time}}</span>
                           <div>{{msg.text}}</div>
 
@@ -85,6 +85,7 @@
     <script src="http://cdn.sockjs.org/sockjs-0.3.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.11/angular.min.js"></script>
     <script src="js/chat.js"></script>
+    <script src="http://blueimp.github.io/JavaScript-MD5/js/md5.js"></script>
     
   </body>
 </html>

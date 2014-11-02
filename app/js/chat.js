@@ -16,7 +16,26 @@ function ChatCtrl($scope) {
   }*/
   var num=1;
 
+  $scope.valBg='white';
+  $scope.valBorder='black';
+  $scope.valColor='black';
 
+  $scope.textColor = function(hexcolor) {
+    hexcolor = hexcolor.slice( 1 );
+    var r = parseInt(hexcolor.substr(0,2),16);
+    console.log(r);
+    var g = parseInt(hexcolor.substr(2,2),16);
+    console.log(g);
+    var b = parseInt(hexcolor.substr(4,2),16);
+    console.log(b);
+    var yiq = ((r*299)+(g*587)+(b*114))/1000;
+    return (yiq >= 128) ? 'black' : 'white';
+  };
+
+  $scope.genColor = function(str) {
+    return '#' + md5(str).slice(0, 6);
+
+  };
 
 
   $scope.sendMessage = function() {
@@ -62,11 +81,14 @@ function ChatCtrl($scope) {
       msgText=e.data.slice(msgStart, e.data.length);
     }
     msgText = msgText.trim();
+    var msgColor = $scope.genColor(name);
+    var txtColor = $scope.textColor(msgColor);
+    console.log(txtColor);
     
     //$scope.messages.["msg"+num] = {};
   	//e.data = e.data.replace(/\s>/, '');
     //$scope.messages.push(e.data);
-    $scope.messages.push({msgNum:num, sender:name, text:msgText, time:timeStamp});
+    $scope.messages.push({msgNum:num, sender:name, text:msgText, time:timeStamp, color:msgColor, txt: txtColor});
     $scope.$apply();
   };
 }
