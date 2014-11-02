@@ -1,6 +1,6 @@
 var sock = new SockJS('http://localhost:3000/chat');
 
-var app = angular.module('pikchatApp', []);
+var app = angular.module('pikchatApp', ['luegg.directives']);
 
 
 
@@ -23,11 +23,8 @@ function ChatCtrl($scope) {
   $scope.textColor = function(hexcolor) {
     hexcolor = hexcolor.slice( 1 );
     var r = parseInt(hexcolor.substr(0,2),16);
-    console.log(r);
     var g = parseInt(hexcolor.substr(2,2),16);
-    console.log(g);
     var b = parseInt(hexcolor.substr(4,2),16);
-    console.log(b);
     var yiq = ((r*299)+(g*587)+(b*114))/1000;
     return (yiq >= 128) ? 'black' : 'white';
   };
@@ -83,7 +80,6 @@ function ChatCtrl($scope) {
     msgText = msgText.trim();
     var msgColor = $scope.genColor(name);
     var txtColor = $scope.textColor(msgColor);
-    console.log(txtColor);
     
     //$scope.messages.["msg"+num] = {};
   	//e.data = e.data.replace(/\s>/, '');

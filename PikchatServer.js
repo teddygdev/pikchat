@@ -16,6 +16,11 @@ var random = {},
     technology = {},
     auto = {};
 
+var rooms = [];
+//$scope.messages.push({msgNum:num, sender:name, text:msgText, time:timeStamp, color:msgColor, txt: txtColor});
+rooms.push({testroom: {} });
+rooms.push({testroom2: {} });
+//console.log(rooms[1].testroom2);
 
 ///////http part
 
@@ -37,7 +42,7 @@ chat.on('connection', function(conn) {
     //var number = connections.length;
     var nickname;
 
-     conn.write('Welcome to \033[94mpi\033[93mK\033[92mchat \033[91ms\033[92me\033[93mr\033[94mv\033[95me\033[96mr\033[39m!');
+     conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' + 'Welcome to \033[94mpi\033[93mK\033[92mchat \033[91ms\033[92me\033[93mr\033[94mv\033[95me\033[96mr\033[39m!');
      conn.write(count + ' other people are connected at this time to the server.'); 
      conn.write('You are automatically placed in the lobby.');
      conn.write('Please write your name and press enter: ');
@@ -47,6 +52,10 @@ chat.on('connection', function(conn) {
     {
         this.value = lobby;
     }
+    CurrentRoom.prototype.toString = function roomToString() {
+        return this.value;
+    }
+
     var currentRoom = new CurrentRoom();
 
     //conn.write("Welcome, User " + number);
@@ -196,6 +205,7 @@ chat.installHandlers(server, {prefix:'/chat'});
                     conn.write(' \033[93m> You have not specified a room to join.\033[39m\n');
                 }
                 if (pass === true) {
+                    /*
                     if (data == 'lobby') {
                         changeRoom(lobby, 'lobby', data, currentRoom, nickname, conn);
                     } else if (data == 'random') {
@@ -213,6 +223,20 @@ chat.installHandlers(server, {prefix:'/chat'});
                     } else if (data == 'auto') {
                         changeRoom(auto, 'auto', data, currentRoom, nickname, conn);
                     } else conn.write('\033[93m > Room "' + data + '" does not exist.\033[39m\n');
+                    */
+                      //var id = arr.length + 1;
+                      //var found = rooms.some(function (el) {
+                      //  return el.username === name;
+                      //});
+                      //if (!found) { arr.push({ id: id, username: name }); }
+                       for (i in rooms) {
+                            if (rooms[i][data]) {
+                                changeRoom(rooms[i][data], data, data, currentRoom, nickname, conn);
+                            }
+                            else conn.write('\033[93m > Room "' + data + '" does not exist.\033[39m\n');
+                        }
+
+
                 }
 
             } else {
@@ -245,7 +269,7 @@ chat.installHandlers(server, {prefix:'/chat'});
 
     function getUsers(conn, currentRoom, nickname) {
         var roomCount = 0;
-        conn.write('\n > \033[92mUsers\033[39m in room \033[92m' + getRoomName(currentRoom) + '\033[39m:');
+        conn.write('\n > \033[92mUsers\033[39m in room \033[92m' + currentRoom + '\033[39m:');
         for (var i in currentRoom.value) {
             roomCount++;
             if (i == nickname) conn.write('\n * ' + i + ' \033[92m(** this is you **)\033[39m');
