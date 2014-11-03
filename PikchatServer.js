@@ -48,15 +48,8 @@ chat.on('connection', function(conn) {
      conn.write('Please write your name and press enter: ');
     
     
-    function CurrentRoom()
-    {
-        this.value = lobby;
-    }
-    CurrentRoom.prototype.toString = function roomToString() {
-        return this.value;
-    }
-
-    var currentRoom = new CurrentRoom();
+    var currentRoom = lobby;
+    var currentRoomName = {value: 'lobby'};
 
     //conn.write("Welcome, User " + number);
     conn.on('data', function(data) {
@@ -85,7 +78,7 @@ chat.on('connection', function(conn) {
                 data = data.replace(/\s/g, ''); //single word names otherwise problems parsing /whisper
                 nickname = data;
                 users[nickname] = conn;
-                currentRoom.value[nickname] = conn;
+                currentRoom[nickname] = conn;
                 conn.write('You can get a list of commands by typing "/\help"');
                 broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', false, currentRoom, nickname);
             }
@@ -98,7 +91,7 @@ chat.on('connection', function(conn) {
     conn.on('close', function() {
         //count--;
         delete users[nickname];
-        delete currentRoom.value[nickname];
+        delete currentRoom[nickname];
         broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', false, currentRoom, nickname);
         console.log(moment().format("MMMDD|HH:mm:ss") + " Users connected: " + count + "");
     });
@@ -131,9 +124,9 @@ var server = http.createServer(app).listen(app.get('port'), function(){
 chat.installHandlers(server, {prefix:'/chat'});
     
     function broadcast(msg, exceptMyself, currentRoom, nickname) {
-        for (var i in currentRoom.value) {
+        for (var i in currentRoom) {
             if (!exceptMyself || i != nickname) {
-                currentRoom.value[i].write('[' + moment().format("MMM DD HH:mm:ss") + ']' + msg);
+                currentRoom[i].write('[' + moment().format("MMM DD HH:mm:ss") + ']' + msg);
             }
         }
     }
@@ -186,7 +179,7 @@ chat.installHandlers(server, {prefix:'/chat'});
 
             } else if (data == "/leave") {
                 //reusing the /join here. This is what the /leave is supposed to do, right?
-                if (currentRoom.value != lobby) {
+                if (currentRoom != lobby) {
                     changeRoom(lobby, 'lobby', 'lobby', currentRoom, nickname, conn);
                 } else {
                     conn.write('\n \033[93m> You are in the Lobby, you cannot go up any further.\033[39m');
@@ -270,7 +263,7 @@ chat.installHandlers(server, {prefix:'/chat'});
     function getUsers(conn, currentRoom, nickname) {
         var roomCount = 0;
         conn.write('\n > \033[92mUsers\033[39m in room \033[92m' + currentRoom + '\033[39m:');
-        for (var i in currentRoom.value) {
+        for (var i in currentRoom) {
             roomCount++;
             if (i == nickname) conn.write('\n * ' + i + ' \033[92m(** this is you **)\033[39m');
             else conn.write('\n * ' + i);
@@ -305,13 +298,13 @@ chat.installHandlers(server, {prefix:'/chat'});
     }
 
     function changeRoom(roomObj, roomStr, data, currentRoom, nickname, conn) {
-        if (currentRoom.value == roomObj) {
+        if (currentRoom == roomObj) {
             conn.write(' \033[93m> You are already in room: ' + data + '\033[39m\n');
         } else {
-            delete currentRoom.value[nickname];
+            delete currentRoom[nickname];
             broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', false, currentRoom, nickname);
-            currentRoom.value = roomObj;
-            currentRoom.value[nickname] = conn;
+            currentRoom = roomObj;
+            currentRoom[nickname] = conn;
             conn.write('\n > Entering room: ' + data + '\n');
             broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', false, currentRoom, nickname);
             getUsers(conn, currentRoom, nickname);
