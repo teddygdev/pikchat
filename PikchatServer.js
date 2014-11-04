@@ -8,13 +8,14 @@ var count = 0,
 //entry room
     //lobby = {};
 //specific rooms
-var random = {},
+/*var random = {},
     videogames = {},
     anime = {},
     fitness = {},
     advice = {},
     technology = {},
     auto = {};
+    */
 
 var rooms = [{0:{name: 'lobby' ,value: {} }}, {1:{name: 'random' ,value: {} }}];
 //$scope.messages.push({msgNum:num, sender:name, text:msgText, time:timeStamp, color:msgColor, txt: txtColor});
@@ -44,7 +45,7 @@ chat.on('connection', function(conn) {
     var nickname;
 
      conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' + 'Welcome to \033[94mpi\033[93mK\033[92mchat \033[91ms\033[92me\033[93mr\033[94mv\033[95me\033[96mr\033[39m!');
-     conn.write(count + ' other people are connected at this time to the server.'); 
+     //conn.write(count + ' other people are connected at this time to the server.'); 
      conn.write('You are automatically placed in the lobby.');
      conn.write('Please write your name and press enter: ');
     
@@ -97,7 +98,7 @@ chat.on('connection', function(conn) {
             //delete nickname in all rooms possible. Should be better than checking conditionally for specific room
         }
         broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', true, nickname, currentRoomName);
-        console.log(moment().format("MMMDD|HH:mm:ss") + " Users connected: " + count + "");
+        //console.log(moment().format("MMMDD|HH:mm:ss") + " Users connected: " + count + "");
     });
 });
 
@@ -156,7 +157,7 @@ chat.installHandlers(server, {prefix:'/chat'});
         }        
         conn.write('\n > End of user list');
         conn.write('\n > Users in room: \033[92m' + roomCount );
-        conn.write('\033[39m\n > Total users in server: \033[92m' + count + '\033[39m\n');
+        //conn.write('\033[39m\n > Total users in server: \033[92m' + count + '\033[39m\n');
     }
 
     function changeRoom(data, nickname, conn, currentRoomName) {
@@ -190,7 +191,7 @@ chat.installHandlers(server, {prefix:'/chat'});
             else conn.write('\n * ' + i);
         }
         conn.write('\n > End of user list');
-        conn.write('\n > Total users in server: \033[92m' + count + '\033[39m\n');
+        //conn.write('\n > Total users in server: \033[92m' + count + '\033[39m\n');
     }
 
     function processData(data, nickname, conn, currentRoomName) {
@@ -301,24 +302,12 @@ chat.installHandlers(server, {prefix:'/chat'});
                                 conn.write('\n > * ' +rooms[i][i]['name']+ ' (' + Object.keys(rooms[i][i]['value']).length + ')' );
                             }
                         }
-        /*
-        conn.write('\n > You are in: \033[92m' + currentRoom + '\033[39m');
-        conn.write('\n > \033[92mActive Rooms\033[39m are:');
-        conn.write('\n > * lobby (' + Object.keys(lobby).length + ')' );
-        conn.write('\n > * random (' + Object.keys(random).length + ')' );
-        conn.write('\n > * videogames (' + Object.keys(videogames).length + ')' );
-        conn.write('\n > * anime (' + Object.keys(anime).length + ')');
-        conn.write('\n > * fitness (' + Object.keys(fitness).length + ')');
-        conn.write('\n > * advice (' + Object.keys(advice).length + ')' );
-        conn.write('\n > * technology (' + Object.keys(technology).length + ')' );
-        conn.write('\n > * auto (' + Object.keys(auto).length + ')\n');
-        */
     }
 
     
 
 
-/*
+
 
 ////////////////
 //create the server
@@ -341,9 +330,9 @@ var server = net.createServer(function(conn) {
         + '\n > ' + count + ' other people are connected at this time to the server.' + '\n > You are automatically placed in the lobby.'
         + '\n > Please write your name and press enter: '
     );
-    count++;
+    //count++;
     //for keeping track of connected users
-    console.log(moment().format("MMMDD|HH:mm:ss") + " \033[92mUsers connected: " + count + "\033[39m");
+    //console.log(moment().format("MMMDD|HH:mm:ss") + " \033[92mUsers connected: " + count + "\033[39m");
 
     //to stringify all incoming data
     conn.setEncoding('utf8');
@@ -356,20 +345,11 @@ var server = net.createServer(function(conn) {
           conn.destroy();
       });
     */
-/*
+
     // the user nickname for the current connection
     var nickname;
     //defaulting to lobby
-    function CurrentRoom()
-    {
-        this.value = lobby;
-    }
-    var currentRoom = new CurrentRoom();
-    
-
-
-
-
+    var currentRoomName = {'value': 'lobby'};
 
     //this is the entry point of the first input
     conn.on('data', function(data) {
@@ -397,23 +377,26 @@ var server = net.createServer(function(conn) {
                 data = data.replace(/\s/g, ''); //single word names otherwise problems parsing /whisper
                 nickname = data;
                 users[nickname] = conn;
-                currentRoom.value[nickname] = conn;
+                rooms[0][0]['value'][nickname] = conn;
                 conn.write('\n > You can get a list of commands by typing "\033[94m/\help\033[39m"\n');
-                broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', false, currentRoom, nickname);
+                broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', true, nickname, currentRoomName);
             }
         }
         //once we have the nickname establishied we can focus on parsing commands
         else {
-            processData(data, currentRoom, nickname, conn);
+            processData(data, nickname, conn, currentRoomName);
         }
     });
 
     conn.on('close', function() {
-        count--;
+        //count--;
         delete users[nickname];
-        delete currentRoom.value[nickname];
-        broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', false, currentRoom, nickname);
-        console.log(moment().format("MMMDD|HH:mm:ss") + " \033[91mUsers connected: " + count + "\033[39m");
+        for (i in rooms) {
+            delete rooms[i][i]['value'][nickname];
+            //delete nickname in all rooms possible. Should be better than checking conditionally for specific room
+        }
+        broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', true, nickname, currentRoomName);
+        //console.log(moment().format("MMMDD|HH:mm:ss") + " Users connected: " + count + "");
     });
 });
 
@@ -421,4 +404,3 @@ var server = net.createServer(function(conn) {
 server.listen(4000, function() {
     console.log(moment().format("MMMDD|HH:mm:ss") + " \033[96m   server listening on *:3000\033[39m");
 });
-*/
