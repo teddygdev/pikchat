@@ -80,14 +80,13 @@ chat.on('connection', function(conn) {
                 nickname = data;
                 users[nickname] = conn;
                 rooms[0][0]['value'][nickname] = conn;
-                //console.log(rooms[0][0]);
                 conn.write('You can get a list of commands by typing "/\help"');
-                broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', false, nickname, 'lobby');
+                broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', true, nickname, currentRoomName['value']);
             }
         }
         //once we have the nickname establishied we can focus on parsing commands
         else {
-            //processData(data, nickname, conn, currentRoomName);
+            processData(data, nickname, conn, currentRoomName['value']);
         }
     });
     conn.on('close', function() {
@@ -95,11 +94,9 @@ chat.on('connection', function(conn) {
         delete users[nickname];
         for (i in rooms) {
             delete rooms[i][i]['value'][nickname];
-            //console.log(rooms[i][i]);
+            //delete nickname in all rooms possible. Should be better than checking conditionally
         }
-
-        
-        //broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', false, currentRoom, nickname);
+        broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', true, nickname, currentRoomName['value']);
         console.log(moment().format("MMMDD|HH:mm:ss") + " Users connected: " + count + "");
     });
 });
@@ -131,20 +128,20 @@ var server = http.createServer(app).listen(app.get('port'), function(){
 chat.installHandlers(server, {prefix:'/chat'});
     
     
-    function broadcast(msg, exceptMyself, nickname, roomName) {
-        
-
-        
-        for (var i in rooms) {
-            if (rooms[i][i]['name']===roomName) {
-                if (!exceptMyself || rooms[i][i]['value'][nickname] != nickname) {
-                    rooms[i][i]['value'][nickname].write('[' + moment().format("MMM DD HH:mm:ss") + ']' + msg);
+    function broadcast(msg, sendMyself, nickname, roomName) {
+        for (var i in rooms) { //go through all array elements (rooms)
+            if (rooms[i][i]['name']===roomName) { //check if room name from the array equals the argument name
+                for (j in rooms[i][i]['value']) { //for that room go through all values (users)
+                    if (sendMyself || j != nickname) { // send/notsend to self or send to all else
+                        rooms[i][i]['value'][j].write('[' + moment().format("MMM DD HH:mm:ss") + ']' + msg);
+                        //print on the screen of all that fit the if statement
+                    }
                 }
             }
         }
     }
 
-    function processData(data, currentRoom, nickname, conn, currentRoomName) {
+    function processData(data, nickname, conn, roomName) {
         if (data == "/quit") {
                 conn.write('\n\033[93m > Bye-bye! Have an amazingly awesome day!\033[39m\n');
                 conn.end();
@@ -255,7 +252,7 @@ chat.installHandlers(server, {prefix:'/chat'});
 
             } else {
                 // if we have the name and it is not a command, it can only be a message
-                broadcast('\033[96m >' + nickname + '<\033[39m ' + data + '\n', true, currentRoom, nickname);
+                broadcast('\033[96m >' + nickname + '<\033[39m ' + data + '\n', false, nickname, roomName);
             }
     }
 
