@@ -6,14 +6,8 @@ var app = angular.module('pikchatApp', ['luegg.directives']);
 
 function ChatCtrl($scope) {
 
-  $scope.valHeight="50vh";
+  $scope.valHeight="65vh";
   $scope.messages = [];
-  /*$scope.messages2 = {           
-          msg1:{ time: 0,
-                text: "",
-                sender: "" 
-              }
-  }*/
   var num=1;
 
   $scope.valBg='white';
@@ -36,9 +30,16 @@ function ChatCtrl($scope) {
 
 
   $scope.sendMessage = function() {
-    //console.log("message sent: " + $scope.messageText);
-    sock.send($scope.messageText);
-    $scope.messageText = "";
+    if (($scope.messageText != undefined)&&($scope.messageText.trim() != "")) {
+      sock.send($scope.messageText);
+      $scope.messageText = "";
+    }
+    else {
+      var msgColor = $scope.genColor(name);
+      var txtColor = $scope.textColor(msgColor);
+      $scope.messages.push({msgNum:0, sender:'System', text:'You cannot send empty messages. Please try again.', time:'', color:'#a45da9', txt: 'white'});
+    }
+    
   };
 
   $scope.incrHeight = function(incr) {
@@ -51,14 +52,15 @@ function ChatCtrl($scope) {
   }
 
   sock.onmessage = function(e) {
+    console.log(e.data);
   	e.data = e.data.replace(/\[90m|\[91m|\[92m|\[93m|\[94m|\[95m|\[96m|\[97m|\[39m/g, '');
+    //e.data = e.data.replace(/\n/g, '<br>');
     num++;
     if ((e.data.match(/^\[.+\]/))==null) timeStamp="";
     else {
       var timeStamp = e.data.match(/^\[.+\]/);
       timeStamp = timeStamp[0];
       timeStamp = timeStamp.slice(1, timeStamp.length - 1);
-      //console.log(timeStamp);
     }
 
     if ((e.data.match(/>.+?</))==null) name="";
@@ -66,7 +68,6 @@ function ChatCtrl($scope) {
       var name = e.data.match(/>.+?</);
       name = name[0];
       name = name.slice(1, name.length - 1);
-      //console.log(name);
     }
     var msgText=e.data;
     if ((timeStamp!="")&&(name!="")) {
@@ -81,9 +82,6 @@ function ChatCtrl($scope) {
     var msgColor = $scope.genColor(name);
     var txtColor = $scope.textColor(msgColor);
     
-    //$scope.messages.["msg"+num] = {};
-  	//e.data = e.data.replace(/\s>/, '');
-    //$scope.messages.push(e.data);
     $scope.messages.push({msgNum:num, sender:name, text:msgText, time:timeStamp, color:msgColor, txt: txtColor});
     $scope.$apply();
   };
