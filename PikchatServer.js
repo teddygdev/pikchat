@@ -165,15 +165,12 @@ chat.installHandlers(server, {prefix:'/chat'});
             conn.write(' \033[93m> You are already in room: ' + data + '\033[39m\n');
         } 
         else {
-
             for (var i in rooms) { //go through all array elements (rooms)
                 if (rooms[i][i]['name']===currentRoomName['value']) { //check if room name from the array equals the argument name
                     broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', true, nickname, currentRoomName);
-                    console.log('test');
-                    console.log(currentRoomName['value']);
                     delete rooms[i][i]['value'][nickname];
-                    //console.log(rooms[i][i]['value'][nickname]);
                     currentRoomName['value']=data;
+                    break; //so that it doesn't end up being recursive and causing unexpected behaviour
                 }
             }      
             for (var i in rooms) { //go through all array elements (rooms)
