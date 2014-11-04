@@ -17,7 +17,35 @@ var count = 0,
     auto = {};
     */
 
-var rooms = [{0:{name: 'lobby' ,value: {} }}, {1:{name: 'random' ,value: {} }}];
+var rooms =[{0:{name: 'lobby' ,value: {} }},
+            {1:{name: 'random' ,value: {} }},
+            {2:{name: 'anime' ,value: {} }},
+            {3:{name: 'videogames' ,value: {} }}, 
+            {4:{name: 'advice' ,value: {} }}];
+var roomNumbers = 5;   
+
+setInterval(function(){
+    console.log('[' + moment().format("MMM DD HH:mm:ss") + '] Destroying non-default rooms with no active users.')
+    for (i in rooms) {
+        for (var j in rooms[i]) {
+            if (j>4) {
+                if (Object.getOwnPropertyNames(rooms[i][j]['value']).length == 0) {
+                    try {
+                        console.log('[' + moment().format("MMM DD HH:mm:ss") + '] Deleted room: ' + rooms[i][j]['name']);
+                        rooms.splice(i, 1);
+                    }
+                    catch (err) {
+                        console.log('[' + moment().format("MMM DD HH:mm:ss") + '] Catch: Something went wrong with deleting room.');
+                    }
+                }
+                
+            }
+            
+        }
+    }
+}, 5 * 60 * 1000); 
+//5 min
+
 //$scope.messages.push({msgNum:num, sender:name, text:msgText, time:timeStamp, color:msgColor, txt: txtColor});
 //rooms.push({testroom: {} });
 //rooms.push({testroom2: {} });
@@ -94,8 +122,10 @@ chat.on('connection', function(conn) {
         //count--;
         delete users[nickname];
         for (i in rooms) {
-            delete rooms[i][i]['value'][nickname];
-            //delete nickname in all rooms possible. Should be better than checking conditionally for specific room
+            for (var j in rooms[i]) {
+                delete rooms[i][j]['value'][nickname];
+                //delete nickname in all rooms possible. Should be better than checking conditionally for specific room
+            }
         }
         broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', true, nickname, currentRoomName);
         //console.log(moment().format("MMMDD|HH:mm:ss") + " Users connected: " + count + "");
@@ -131,11 +161,13 @@ chat.installHandlers(server, {prefix:'/chat'});
     
     function broadcast(msg, sendMyself, nickname, currentRoomName) {
         for (var i in rooms) { //go through all array elements (rooms)
-            if (rooms[i][i]['name']===currentRoomName['value']) { //check if room name from the array equals the argument name
-                for (j in rooms[i][i]['value']) { //for that room go through all values (users)
-                    if (sendMyself || j != nickname) { // send/notsend to self or send to all else
-                        rooms[i][i]['value'][j].write('[' + moment().format("MMM DD HH:mm:ss") + ']' + msg);
-                        //print on the screen of all that fit the if statement
+            for (var j in rooms[i]) {
+                if (rooms[i][j]['name']===currentRoomName['value']) { //check if room name from the array equals the argument name
+                    for (k in rooms[i][j]['value']) { //for that room go through all values (users)
+                        if (sendMyself || k != nickname) { // send/notsend to self or send to all else
+                            rooms[i][j]['value'][k].write('[' + moment().format("MMM DD HH:mm:ss") + ']' + msg);
+                            //print on the screen of all that fit the if statement
+                        }
                     }
                 }
             }
@@ -147,11 +179,13 @@ chat.installHandlers(server, {prefix:'/chat'});
         //console.log(currentRoomName['value']);
         conn.write('\n > \033[92mUsers\033[39m in room \033[92m' + currentRoomName['value'] + '\033[39m:');
         for (var i in rooms) { //go through all array elements (rooms)
-            if (rooms[i][i]['name']===currentRoomName['value']) { //check if room name from the array equals the argument name
-                for (j in rooms[i][i]['value']) { //for that room go through all values (users)
-                    roomCount++;
-                    if (j == nickname) conn.write('\n * ' + j + ' \033[92m(** this is you **)\033[39m');
-                    else conn.write('\n * ' + j);
+            for (var j in rooms[i]) {
+                if (rooms[i][j]['name']===currentRoomName['value']) { //check if room name from the array equals the argument name
+                    for (k in rooms[i][j]['value']) { //for that room go through all values (users)
+                        roomCount++;
+                        if (k == nickname) conn.write('\n * ' + k + ' \033[92m(** this is you **)\033[39m');
+                        else conn.write('\n * ' + k);
+                    }
                 }
             }
         }        
@@ -166,19 +200,23 @@ chat.installHandlers(server, {prefix:'/chat'});
         } 
         else {
             for (var i in rooms) { //go through all array elements (rooms)
-                if (rooms[i][i]['name']===currentRoomName['value']) { //check if room name from the array equals the argument name
-                    broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', true, nickname, currentRoomName);
-                    delete rooms[i][i]['value'][nickname];
-                    currentRoomName['value']=data;
-                    break; //so that it doesn't end up being recursive and causing unexpected behaviour
+                for (var j in rooms[i]) {
+                    if (rooms[i][j]['name']===currentRoomName['value']) { //check if room name from the array equals the argument name
+                        broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', true, nickname, currentRoomName);
+                        delete rooms[i][j]['value'][nickname];
+                        currentRoomName['value']=data;
+                        break; //so that it doesn't end up being recursive and causing unexpected behaviour
+                    }
                 }
             }      
             for (var i in rooms) { //go through all array elements (rooms)
-                if (rooms[i][i]['name']===data) { //check if room name from the array equals the argument name
-                    rooms[i][i]['value'][nickname] = conn;
-                    conn.write('\n > Entering room: ' + data + '\n');
-                    broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', true, nickname, currentRoomName);
-                    getUsers(conn, nickname, currentRoomName);
+                for (var j in rooms[i]) {
+                    if (rooms[i][j]['name']===data) { //check if room name from the array equals the argument name
+                        rooms[i][j]['value'][nickname] = conn;
+                        conn.write('\n > Entering room: ' + data + '\n');
+                        broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', true, nickname, currentRoomName);
+                        getUsers(conn, nickname, currentRoomName);
+                    }
                 }
             }   
         }
@@ -187,7 +225,8 @@ chat.installHandlers(server, {prefix:'/chat'});
     function createRoom (data) {
         try {
             var object = {};
-            var myVar = rooms.length;
+            var myVar = roomNumbers;
+            roomNumbers++;
             object[myVar] = {'name': data ,'value': {} };
         rooms.push(object);
         }
@@ -279,9 +318,11 @@ chat.installHandlers(server, {prefix:'/chat'});
                 if (pass === true) {
                       var pass2=false;
                         for (var i in rooms) { //go through all array elements (rooms)
-                            if (rooms[i][i]['name']===data) { //check if room name from the array equals the argument name
-                                changeRoom(data, nickname, conn, currentRoomName);
-                                pass2=true;
+                            for (var j in rooms[i]) {
+                                if (rooms[i][j]['name']===data) { //check if room name from the array equals the argument name
+                                    changeRoom(data, nickname, conn, currentRoomName);
+                                    pass2=true;
+                                }
                             }
                         }
                         if (pass2==false) conn.write('\033[93m > Room "' + data + '" does not exist.\033[39m\n');
@@ -304,9 +345,11 @@ chat.installHandlers(server, {prefix:'/chat'});
                 if (pass === true) {
                       var pass2=true;
                         for (var i in rooms) { //go through all array elements (rooms)
-                            if (rooms[i][i]['name']===data) { //check if room name from the array equals the argument name
-                                //changeRoom(data, nickname, conn, currentRoomName);
-                                pass2=false;
+                            for (var j in rooms[i]) {
+                                if (rooms[i][j]['name']===data) { //check if room name from the array equals the argument name
+                                    //changeRoom(data, nickname, conn, currentRoomName);
+                                    pass2=false;
+                                }
                             }
                         }
                         if (pass2==false) conn.write('\033[93m > Room "' + data + '" already exists.\033[39m\n');
@@ -341,13 +384,15 @@ chat.installHandlers(server, {prefix:'/chat'});
     function listRooms(currentRoomName, conn) {
         conn.write('\n > \033[92mActive Rooms\033[39m are:');
         for (var i in rooms) { //go through all array elements (rooms)
-                            if (rooms[i][i]['name']===currentRoomName['value']) { //check if room name from the array equals the argument name
-                                conn.write('\n > >>>>> You are here: \033[92m' + currentRoomName['value'] + '\033[39m' + ' (' + Object.keys(rooms[i][i]['value']).length + ')');
+            for (var j in rooms[i]) {
+                            if (rooms[i][j]['name']===currentRoomName['value']) { //check if room name from the array equals the argument name
+                                conn.write('\n > >>>>> You are here: \033[92m' + currentRoomName['value'] + '\033[39m' + ' (' + Object.keys(rooms[i][j]['value']).length + ')');
                             }
                             else {
-                                conn.write('\n > * ' +rooms[i][i]['name']+ ' (' + Object.keys(rooms[i][i]['value']).length + ')' );
+                                conn.write('\n > * ' +rooms[i][j]['name']+ ' (' + Object.keys(rooms[i][j]['value']).length + ')' );
                             }
                         }
+                    }
     }
 
     
@@ -438,8 +483,10 @@ var server = net.createServer(function(conn) {
         //count--;
         delete users[nickname];
         for (i in rooms) {
-            delete rooms[i][i]['value'][nickname];
-            //delete nickname in all rooms possible. Should be better than checking conditionally for specific room
+            for (var j in rooms[i]) {
+                delete rooms[i][j]['value'][nickname];
+                //delete nickname in all rooms possible. Should be better than checking conditionally for specific room}
+            }
         }
         broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', true, nickname, currentRoomName);
         //console.log(moment().format("MMMDD|HH:mm:ss") + " Users connected: " + count + "");
