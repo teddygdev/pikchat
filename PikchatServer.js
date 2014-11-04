@@ -4,9 +4,9 @@ var moment = require('moment');
 
 //keep track of users
 var count = 0,
-    users = {},
+    users = {};
 //entry room
-    lobby = {};
+    //lobby = {};
 //specific rooms
 var random = {},
     videogames = {},
@@ -16,10 +16,10 @@ var random = {},
     technology = {},
     auto = {};
 
-var rooms = [];
+var rooms = [{0:{name: 'lobby' ,value: {} }}, {1:{name: 'random' ,value: {} }}];
 //$scope.messages.push({msgNum:num, sender:name, text:msgText, time:timeStamp, color:msgColor, txt: txtColor});
-rooms.push({testroom: {} });
-rooms.push({testroom2: {} });
+//rooms.push({testroom: {} });
+//rooms.push({testroom2: {} });
 //rooms.push({lobby: {} });
 //console.log(rooms[1].testroom2);
 
@@ -49,7 +49,7 @@ chat.on('connection', function(conn) {
      conn.write('Please write your name and press enter: ');
     
     
-    var currentRoom = lobby;
+    //var currentRoom = lobby;
     var currentRoomName = {'value': 'lobby'};
 
     //conn.write("Welcome, User " + number);
@@ -79,21 +79,27 @@ chat.on('connection', function(conn) {
                 data = data.replace(/\s/g, ''); //single word names otherwise problems parsing /whisper
                 nickname = data;
                 users[nickname] = conn;
-                currentRoom[nickname] = conn;
+                rooms[0][0]['value'][nickname] = conn;
+                //console.log(rooms[0][0]);
                 conn.write('You can get a list of commands by typing "/\help"');
-                broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', false, currentRoom, nickname);
+                broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', false, nickname, 'lobby');
             }
         }
         //once we have the nickname establishied we can focus on parsing commands
         else {
-            processData(data, currentRoom, nickname, conn, currentRoomName);
+            //processData(data, nickname, conn, currentRoomName);
         }
     });
     conn.on('close', function() {
         //count--;
         delete users[nickname];
-        delete currentRoom[nickname];
-        broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', false, currentRoom, nickname);
+        for (i in rooms) {
+            delete rooms[i][i]['value'][nickname];
+            //console.log(rooms[i][i]);
+        }
+
+        
+        //broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', false, currentRoom, nickname);
         console.log(moment().format("MMMDD|HH:mm:ss") + " Users connected: " + count + "");
     });
 });
@@ -125,6 +131,18 @@ var server = http.createServer(app).listen(app.get('port'), function(){
 chat.installHandlers(server, {prefix:'/chat'});
     
     
+    function broadcast(msg, exceptMyself, nickname, roomName) {
+        
+
+        
+        for (var i in rooms) {
+            if (rooms[i][i]['name']===roomName) {
+                if (!exceptMyself || rooms[i][i]['value'][nickname] != nickname) {
+                    rooms[i][i]['value'][nickname].write('[' + moment().format("MMM DD HH:mm:ss") + ']' + msg);
+                }
+            }
+        }
+    }
 
     function processData(data, currentRoom, nickname, conn, currentRoomName) {
         if (data == "/quit") {
@@ -241,15 +259,7 @@ chat.installHandlers(server, {prefix:'/chat'});
             }
     }
 
-    function broadcast(msg, exceptMyself, currentRoom, nickname) {
-        for (var i in currentRoom) {
-            console.log("broadcast isock=" + currentRoom[i]);
-            console.log("broadcast i=" + i);
-            if (!exceptMyself || i != nickname) {
-                currentRoom[i].write('[' + moment().format("MMM DD HH:mm:ss") + ']' + msg);
-            }
-        }
-    }
+    
 
     function changeRoom(roomObj, roomStr, data, currentRoom, nickname, conn, currentRoomName) {
         if (currentRoom == roomObj) {
