@@ -167,8 +167,6 @@ chat.installHandlers(server, {prefix:'/chat'});
 
             for (var i in rooms) { //go through all array elements (rooms)
                 if (rooms[i][i]['name']===currentRoomName['value']) { //check if room name from the array equals the argument name
-                    //for (j in rooms[i][i]['value']) { //for that room go through all values (users)
-                    //}
                     delete rooms[i][i]['value'][nickname];
                     broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', true, nickname, currentRoomName);
                     currentRoomName['value']=data;
@@ -176,24 +174,12 @@ chat.installHandlers(server, {prefix:'/chat'});
             }      
             for (var i in rooms) { //go through all array elements (rooms)
                 if (rooms[i][i]['name']===data) { //check if room name from the array equals the argument name
-                    //for (j in rooms[i][i]['value']) { //for that room go through all values (users)
-                    //}
                     rooms[i][i]['value'][nickname] = conn;
                     conn.write('\n > Entering room: ' + data + '\n');
                     broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', true, nickname, currentRoomName);
                     getUsers(conn, nickname, currentRoomName);
                 }
-            }    
-
-
-            //delete currentRoom[nickname];
-            //broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', false, currentRoom, nickname);
-            //currentRoom = roomObj;
-            //currentRoomName['value'] = roomStr;
-            //currentRoom[nickname] = conn;
-            //conn.write('\n > Entering room: ' + data + '\n');
-            //broadcast('\033[90m > ' + nickname + ' joined the room\033[39m\n', false, currentRoom, nickname);
-            //getUsers(conn, currentRoom, nickname, currentRoomName);
+            }   
         }
     }
 
@@ -216,7 +202,7 @@ chat.installHandlers(server, {prefix:'/chat'});
             } else if (data == "/allusers") {
                 getAllUsers(conn, nickname);
             } else if (data == "/rooms") {
-                listRooms(currentRoom, conn);
+                listRooms(currentRoomName, conn);
             } else if (data.match(/^\/whisper|^\/w/)) {
                 try { //have to do some bothersome parsing, but not worth it bringing a parsing module just for this
                     data = data.trim();
@@ -255,8 +241,8 @@ chat.installHandlers(server, {prefix:'/chat'});
 
             } else if (data == "/leave") {
                 //reusing the /join here. This is what the /leave is supposed to do, right?
-                if (currentRoom != lobby) {
-                    changeRoom(lobby, 'lobby', 'lobby', currentRoom, nickname, conn, currentRoomName);
+                if (currentRoomName['value'] != 'lobby') {
+                    changeRoom('lobby', nickname, conn, currentRoomName);
                 } else {
                     conn.write('\n \033[93m> You are in the Lobby, you cannot go up any further.\033[39m');
                     conn.write('\n > You can quit the chat server with "\033[94m/\quit\033[39m".');
@@ -274,30 +260,6 @@ chat.installHandlers(server, {prefix:'/chat'});
                     conn.write(' \033[93m> You have not specified a room to join.\033[39m\n');
                 }
                 if (pass === true) {
-                    /*
-                    if (data == 'lobby') {
-                        changeRoom(lobby, 'lobby', data, currentRoom, nickname, conn);
-                    } else if (data == 'random') {
-                        changeRoom(random, 'random', data, currentRoom, nickname, conn);
-                    } else if (data == 'videogames') {
-                        changeRoom(videogames, 'videogames', data, currentRoom, nickname, conn);
-                    } else if (data == 'anime') {
-                        changeRoom(anime, 'anime', data, currentRoom, nickname, conn);
-                    } else if (data == 'fitness') {
-                        changeRoom(fitness, 'fitness', data, currentRoom, nickname, conn);
-                    } else if (data == 'advice') {
-                        changeRoom(advice, 'advice', data, currentRoom, nickname, conn);
-                    } else if (data == 'technology') {
-                        changeRoom(technology, 'technology', data, currentRoom, nickname, conn);
-                    } else if (data == 'auto') {
-                        changeRoom(auto, 'auto', data, currentRoom, nickname, conn);
-                    } else conn.write('\033[93m > Room "' + data + '" does not exist.\033[39m\n');
-                    */
-                      //var id = arr.length + 1;
-                      //var found = rooms.some(function (el) {
-                      //  return el.username === name;
-                      //});
-                      //if (!found) { arr.push({ id: id, username: name }); }
                       var pass2=false;
                         for (var i in rooms) { //go through all array elements (rooms)
                             if (rooms[i][i]['name']===data) { //check if room name from the array equals the argument name
@@ -306,7 +268,6 @@ chat.installHandlers(server, {prefix:'/chat'});
                             }
                         }
                         if (pass2==false) conn.write('\033[93m > Room "' + data + '" does not exist.\033[39m\n');
-
 
                 }
 
@@ -327,22 +288,20 @@ chat.installHandlers(server, {prefix:'/chat'});
         }
 
     }
-
-    function getRoomName(currentRoom) {
-        if (currentRoom.value == lobby) return "Lobby";
-        if (currentRoom.value == random) return "Random";
-        if (currentRoom.value == videogames) return "Videogames";
-        if (currentRoom.value == anime) return "Anime";
-        if (currentRoom.value == fitness) return "Fitness";
-        if (currentRoom.value == advice) return "Advice";
-        if (currentRoom.value == technology) return "Technology";
-        if (currentRoom.value == auto) return "Auto";
-    }
-
     
 
-    //hardcoded rooms :( should implement better in the future
-    function listRooms(currentRoom, conn) {
+    
+    function listRooms(currentRoomName, conn) {
+        conn.write('\n > \033[92mActive Rooms\033[39m are:');
+        for (var i in rooms) { //go through all array elements (rooms)
+                            if (rooms[i][i]['name']===currentRoomName['value']) { //check if room name from the array equals the argument name
+                                conn.write('\n > >>>>> You are here: \033[92m' + currentRoomName['value'] + '\033[39m' + ' (' + Object.keys(rooms[i][i]['value']).length + ')');
+                            }
+                            else {
+                                conn.write('\n > * ' +rooms[i][i]['name']+ ' (' + Object.keys(rooms[i][i]['value']).length + ')' );
+                            }
+                        }
+        /*
         conn.write('\n > You are in: \033[92m' + currentRoom + '\033[39m');
         conn.write('\n > \033[92mActive Rooms\033[39m are:');
         conn.write('\n > * lobby (' + Object.keys(lobby).length + ')' );
@@ -353,6 +312,7 @@ chat.installHandlers(server, {prefix:'/chat'});
         conn.write('\n > * advice (' + Object.keys(advice).length + ')' );
         conn.write('\n > * technology (' + Object.keys(technology).length + ')' );
         conn.write('\n > * auto (' + Object.keys(auto).length + ')\n');
+        */
     }
 
     
