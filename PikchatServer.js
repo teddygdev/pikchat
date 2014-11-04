@@ -144,7 +144,7 @@ chat.installHandlers(server, {prefix:'/chat'});
 
     function getUsers(conn, nickname, currentRoomName) {
         var roomCount = 0;
-        console.log(currentRoomName['value']);
+        //console.log(currentRoomName['value']);
         conn.write('\n > \033[92mUsers\033[39m in room \033[92m' + currentRoomName['value'] + '\033[39m:');
         for (var i in rooms) { //go through all array elements (rooms)
             if (rooms[i][i]['name']===currentRoomName['value']) { //check if room name from the array equals the argument name
@@ -168,8 +168,11 @@ chat.installHandlers(server, {prefix:'/chat'});
 
             for (var i in rooms) { //go through all array elements (rooms)
                 if (rooms[i][i]['name']===currentRoomName['value']) { //check if room name from the array equals the argument name
-                    delete rooms[i][i]['value'][nickname];
                     broadcast('\033[90m > ' + nickname + ' left the room\033[39m\n', true, nickname, currentRoomName);
+                    console.log('test');
+                    console.log(currentRoomName['value']);
+                    delete rooms[i][i]['value'][nickname];
+                    //console.log(rooms[i][i]['value'][nickname]);
                     currentRoomName['value']=data;
                 }
             }      
@@ -181,6 +184,19 @@ chat.installHandlers(server, {prefix:'/chat'});
                     getUsers(conn, nickname, currentRoomName);
                 }
             }   
+        }
+    }
+
+    function createRoom (data) {
+        try {
+            var object = {};
+            var myVar = rooms.length;
+            object[myVar] = {'name': data ,'value': {} };
+        rooms.push(object);
+        }
+        catch (err) {
+            console.log('error');
+            console.log(err);
         }
     }
 
@@ -225,7 +241,8 @@ chat.installHandlers(server, {prefix:'/chat'});
                 } catch (err) {
                     conn.write(' \033[93m> Oh-oh. Error. Did you add a receiver and a message?\033[39m\n');
                 }
-            } else if (data == "/help") {
+            } 
+            else if (data == "/help") {
                 conn.write('\n > The list of possible commands are:'); 
                 conn.write('\n > \033[94m\/help\033[39m - Show the help screen with commands');
                 conn.write('\n > \033[94m\/quit\033[39m - Disconnects from the chat server and exits');
@@ -240,7 +257,8 @@ chat.installHandlers(server, {prefix:'/chat'});
                 conn.write('\n > Q: Can I create a chat room?');
                 conn.write('\n > A: Not as of now.\n');
 
-            } else if (data == "/leave") {
+            } 
+            else if (data == "/leave") {
                 //reusing the /join here. This is what the /leave is supposed to do, right?
                 if (currentRoomName['value'] != 'lobby') {
                     changeRoom('lobby', nickname, conn, currentRoomName);
@@ -249,7 +267,8 @@ chat.installHandlers(server, {prefix:'/chat'});
                     conn.write('\n > You can quit the chat server with "\033[94m/\quit\033[39m".');
                     conn.write('\n > Or you could join a specific room with "\033[94m/\join [roomname]\033[39m".\n');
                 }
-            } else if (data.match(/^\/join/)) {
+            } 
+            else if (data.match(/^\/join/)) {
                 //some mild parsing again, but not as bad the the /whisper parsing
                 var pass = false;
                 try {
@@ -272,7 +291,37 @@ chat.installHandlers(server, {prefix:'/chat'});
 
                 }
 
-            } else {
+            }
+
+            else if (data.match(/^\/create/)) {
+                //some mild parsing again, but not as bad the the /whisper parsing
+                var pass = false;
+                try {
+                    data = data.split(/\s+/)[1];
+                    data = data.trim();
+                    data = data.toLowerCase();
+                    var pass = true;
+                } catch (err) {
+                    conn.write(' \033[93m> You have not specified a room to create.\033[39m\n');
+                }
+                if (pass === true) {
+                      var pass2=true;
+                        for (var i in rooms) { //go through all array elements (rooms)
+                            if (rooms[i][i]['name']===data) { //check if room name from the array equals the argument name
+                                //changeRoom(data, nickname, conn, currentRoomName);
+                                pass2=false;
+                            }
+                        }
+                        if (pass2==false) conn.write('\033[93m > Room "' + data + '" already exists.\033[39m\n');
+                        else {
+                            createRoom(data);
+                        }
+
+                }
+
+            } 
+
+            else {
                 // if we have the name and it is not a command, it can only be a message
                 broadcast('\033[96m >' + nickname + '<\033[39m ' + data + '\n', false, nickname, currentRoomName);
             }
