@@ -61,9 +61,9 @@ function ChatCtrl($scope) {
       //console.log(timeStamp);
     }
 
-    if ((e.data.match(/>.+</))==null) name="";
+    if ((e.data.match(/>.+?</))==null) name="";
     else {
-      var name = e.data.match(/>.+</);
+      var name = e.data.match(/>.+?</);
       name = name[0];
       name = name.slice(1, name.length - 1);
       //console.log(name);

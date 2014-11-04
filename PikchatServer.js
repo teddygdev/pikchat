@@ -156,7 +156,7 @@ chat.installHandlers(server, {prefix:'/chat'});
             }
         }        
         conn.write('\n > End of user list');
-        conn.write('\n > Users in room: \033[92m' + roomCount );
+        conn.write('\n > Users in room: \033[92m' + roomCount + '\033[39m\n');
         //conn.write('\033[39m\n > Total users in server: \033[92m' + count + '\033[39m\n');
     }
 
