@@ -5,24 +5,15 @@ var moment = require('moment');
 //keep track of users
 var count = 0,
     users = {};
-//entry room
-    //lobby = {};
-//specific rooms
-/*var random = {},
-    videogames = {},
-    anime = {},
-    fitness = {},
-    advice = {},
-    technology = {},
-    auto = {};
-    */
 
+//default rooms that won't be deletable
 var rooms =[{0:{name: 'lobby' ,value: {} }},
             {1:{name: 'random' ,value: {} }},
             {2:{name: 'anime' ,value: {} }},
             {3:{name: 'videogames' ,value: {} }}, 
             {4:{name: 'advice' ,value: {} }}];
 var roomNumbers = 5;   
+//counter needed for generating more rooms
 
 setInterval(function(){
     console.log('[' + moment().format("MMM DD HH:mm:ss") + '] Destroying non-default rooms with no active users.')
@@ -38,9 +29,7 @@ setInterval(function(){
                         console.log('[' + moment().format("MMM DD HH:mm:ss") + '] Catch: Something went wrong with deleting room.');
                     }
                 }
-                
             }
-            
         }
     }
 }, 5 * 60 * 1000); 
