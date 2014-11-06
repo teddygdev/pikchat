@@ -139,11 +139,11 @@ chat.on('connection', function(conn) {
                 users[nickname] = conn;
                 rooms[0][0]['value'][nickname] = conn; //room[0][0] is the lobby
                 conn.write(
-                    '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +'You joined the room as '+ nickname +
+                    '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +'You joined the server and "lobby" room as '+ nickname +
                     '\nYou can get a list of commands by typing "/\help"'
                 );
                 broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname +
-                    ' joined the "'+ currentRoomName['value'] +'" room\033[39m\n', true,
+                    ' joined the "'+ currentRoomName['value'] +'" room\033[39m\n', false,
                     nickname, currentRoomName);
             }
         }
@@ -161,7 +161,7 @@ chat.on('connection', function(conn) {
             }
         }
         broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname +
-            ' left the "' + currentRoomName['value'] + '" room\033[39m\n', true, nickname,
+            ' left the "' + currentRoomName['value'] + '" room\033[39m\n', false, nickname,
             currentRoomName);
     });
 });
@@ -244,7 +244,7 @@ function changeRoom(data, nickname, conn, currentRoomName) {
             for (var j in rooms[i]) {
                 if (rooms[i][j]['name'] === currentRoomName['value']) { //check if room name from the array equals the argument name
                     broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname +
-                        ' left the "' + currentRoomName['value'] + '" room\033[39m\n', true, nickname,
+                        ' left the "' + currentRoomName['value'] + '" room\033[39m\n', false, nickname,
                         currentRoomName);
                     delete rooms[i][j]['value'][nickname];
                     currentRoomName['value'] = data;
@@ -260,7 +260,7 @@ function changeRoom(data, nickname, conn, currentRoomName) {
                     conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + '<< You are now in room: "' + data + '" >>\n');  
                     //I feel this is a bit useless, so I am hiding it.
                     broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname +
-                        ' joined the "'+ currentRoomName['value'] +'" room\033[39m\n', true,
+                        ' joined the "'+ currentRoomName['value'] +'" room\033[39m\n', false,
                         nickname, currentRoomName);
                     getUsers(conn, nickname, currentRoomName);
                 }
@@ -303,7 +303,7 @@ function processData(data, nickname, conn, currentRoomName) {
         conn.write(' \033[91m>System<\033[39m \033[93mYou cannot send an empty message.\033[39m\n');
     }
     else if (data == "/quit") {
-        conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m Bye! Have an amazingly awesome day/night!');
+        conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m Bye! Have an awesome day!');
         conn.end();
     } 
     else if (data == "/users") {
@@ -497,10 +497,12 @@ var server = net.createServer(function(conn) {
     //using ansi escape codes for coloring
     conn.write(
         '\n > welcome to \033[94mpi\033[93mK\033[92mchat \033[91ms\033[92me\033[93mr\033[94mv\033[95me\033[96mr\033[39m!' +
-        '\n > ' + count +
-        ' other people are connected at this time to the server.' +
+        //'\n > ' + count +
+        //' other people are connected at this time to the server.' +
         '\n > You are automatically placed in the lobby.' +
-        '\n > Please write your name and press enter: '
+        '\n > Messages by >System< are only visible to you.' +
+        '\n > Accepted characters: [ A-Z ][ a-z ][ 0-9 ][ _ ]' +
+        '\n \033[93m> Please write your name and press enter:\033[39m '
     );
     //count++;
     //for keeping track of connected users
@@ -529,42 +531,59 @@ var server = net.createServer(function(conn) {
     conn.on('data', function(data) {
         data = data.trim();
         // the first piece of data we expect is the nickname
-        if (!nickname) {
+        if (!nickname) { //see if it fits all the criteria
             if (users[data]) {
                 conn.write(
                     '\033[93m > That nickname is already in use. Try again:\033[39m '
                 );
                 return;
-            } else if (data.length > 21) { //because nobody wants enourmous names. 21 seems reasonable
+            } 
+            else if (data.length > 14) { //because nobody wants enourmous names. 14 seems reasonable
                 conn.write(
-                    '\033[93m > Your name is too long (>21 chars). Try again:\033[39m '
+                    '\033[93m > Your name is too long (>14 chars). Try again:\033[39m '
                 );
                 return;
-            } else if (!data.match(/\S+/)) {
+            } 
+            else if (!data.match(/\S+/)) {
                 conn.write(
-                    '\033[93m > You name cannot be a blank space. Try again:\033[39m '
+                    '\033[93m > Your name cannot be a blank space. Try again:\033[39m '
                 );
                 return;
-            } else if ((data.toLowerCase() == "admin") || (data
+            } 
+            else if (!data.match(/^[A-Za-z0-9_]{2,}$/)) {
+                conn.write(
+                    '\033[93m > Only letters, digits, and underscore are accepted. You need at least 2 characters. Please try again:\033[39m '
+                );
+                return;
+            } 
+            else if (!data.match(/[A-Za-z]+/)) {
+                conn.write(
+                    '\033[93m > Your name has to have at least one letter in it. Please try again:\033[39m '
+                );
+                return;
+            } 
+            else if ((data.toLowerCase() == "admin") || (data
                     .toLowerCase() == "mod") || (data.toLowerCase() ==
                     "administrator") || (data.toLowerCase() ==
                     "moderator") || (data.toLowerCase() ==
+                    "broadcast") || (data.toLowerCase() ==
+                    "system") || (data.toLowerCase() ==
                     "you")) {
                 conn.write(
-                    '\033[93m > Those are reserved words. Choose a different name and try again:\033[39m '
+                    '\033[93m > You entered a reserved word. Please choose a different name and try again:\033[39m '
                 );
                 return;
-            } else {
-                data = data.replace('/', ''); //do not want pesky names like /quit, /whisper, etc...
-                data = data.replace(/\s/g, ''); //single word names otherwise problems parsing /whisper
+            } 
+            else { //it fits the criteria!
                 nickname = data;
                 users[nickname] = conn;
-                rooms[0][0]['value'][nickname] = conn;
+                rooms[0][0]['value'][nickname] = conn; //room[0][0] is the lobby
                 conn.write(
-                    '\n > You can get a list of commands by typing "\033[94m/\help\033[39m"\n'
+                    '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +'You joined the server and "lobby" room as '+ nickname +
+                    '\nYou can get a list of commands by typing "/\help"\n'
                 );
-                broadcast('\033[90m > ' + nickname +
-                    ' joined the room\033[39m\n', true,
+                broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname +
+                    ' joined the "'+ currentRoomName['value'] +'" room\033[39m\n', false,
                     nickname, currentRoomName);
             }
         }
@@ -575,23 +594,21 @@ var server = net.createServer(function(conn) {
     });
 
     conn.on('close', function() {
-        //count--;
         delete users[nickname];
         for (i in rooms) {
             for (var j in rooms[i]) {
                 delete rooms[i][j]['value'][nickname];
-                //delete nickname in all rooms possible. Should be better than checking conditionally for specific room}
+                //delete nickname in all rooms possible. Should be better than checking conditionally for specific room
             }
         }
-        broadcast('\033[90m > ' + nickname +
-            ' left the room\033[39m\n', true, nickname,
+        broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname +
+            ' left the "' + currentRoomName['value'] + '" room\033[39m\n', false, nickname,
             currentRoomName);
-        //console.log(moment().format("MMMDD|HH:mm:ss") + " Users connected: " + count + "");
     });
 });
 
 
 server.listen(4000, function() {
     console.log(moment().format("MMMDD|HH:mm:ss") +
-        " \033[96m   server listening on *:3000\033[39m");
+        " \033[96m   server listening on *:4000\033[39m");
 });
