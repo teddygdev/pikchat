@@ -76,6 +76,11 @@ var connections = [];
 var chat = sockjs.createServer();
 chat.on('connection', function(conn) {
     var nickname;
+    var rate = 5000; // unit: messages
+    var per  = 7000; // unit: seconds
+    var allowance = rate; // unit: messages
+    var last_check = Date.now(); // floating-point, e.g. usec accuracy. Unit: seconds
+    var spam=0;
 
     conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' +
         'Welcome to \033[94mpi\033[93mK\033[92mchat \033[91ms\033[92me\033[93mr\033[94mv\033[95me\033[96mr\033[39m! ' +
@@ -87,70 +92,101 @@ chat.on('connection', function(conn) {
     }; //for keeping track in which room we are
 
     conn.on('data', function(data) {
-        data = data.trim();
-        conn.write('[' + moment().format("MMM DD HH:mm:ss") +
-            '] >You< ' + data);
-        // the first piece of data we expect is the nickname
-        if (!nickname) { //see if it fits all the criteria
-            if (users[data]) {
-                conn.write(
-                    '[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' + 'That nickname is already in use. Try again. '
-                );
-                return;
-            } 
-            else if (data.length > 14) { //because nobody wants enourmous names. 14 seems reasonable
-                conn.write(
-                    '[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' +'Your name is too long (>14 chars). Try again. '
-                );
-                return;
-            } 
-            else if (!data.match(/\S+/)) {
-                conn.write(
-                    '[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' +'Your name cannot be a blank space. Try again. '
-                );
-                return;
-            } 
-            else if (!data.match(/^[A-Za-z0-9_]{2,}$/)) {
-                conn.write(
-                    '[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' +'Only letters, digits, and underscore are accepted. You need at least 2 characters. Please try again.'
-                );
-                return;
-            } 
-            else if (!data.match(/[A-Za-z]+/)) {
-                conn.write(
-                    '[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' +'Your name has to have at least one letter in it. Please try again.'
-                );
-                return;
-            } 
-            else if ((data.toLowerCase() == "admin") || (data
-                    .toLowerCase() == "mod") || (data.toLowerCase() ==
-                    "administrator") || (data.toLowerCase() ==
-                    "moderator") || (data.toLowerCase() ==
-                    "broadcast") || (data.toLowerCase() ==
-                    "system") || (data.toLowerCase() ==
-                    "you")) {
-                conn.write(
-                    '[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' +'You entered a reserved word. Please choose a different name and try again. '
-                );
-                return;
-            } 
-            else { //it fits the criteria!
-                nickname = data;
-                users[nickname] = conn;
-                rooms[0][0]['value'][nickname] = conn; //room[0][0] is the lobby
-                conn.write(
-                    '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +'You joined the server and "lobby" room as '+ nickname +
-                    '\nYou can get a list of commands by typing "/\help"'
-                );
-                broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname +
-                    ' joined the "'+ currentRoomName['value'] +'" room\033[39m\n', false,
-                    nickname, currentRoomName);
-            }
+        var current = Date.now();
+        var time_passed = current - last_check;
+        last_check = current;
+
+        if (spam > 5) {
+            if (spam>10) per=30000;
+            else if (spam>15) per=60000;
+            else if (spam>20) per=120000;
+            else per=15000;
         }
-        //once we have the nickname establishied we can focus on parsing commands
         else {
-            processData(data, nickname, conn, currentRoomName);
+            per = 7000;
         }
+        allowance += time_passed * (rate / per);
+        if (allowance > rate) {
+            allowance = rate; // throttle
+            if (spam>0) spam--;
+        }
+        if (allowance < 1000) {
+            //discard_message;
+            spam++;
+            conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' + 'You have hit the message limit. \nPlease wait a few seconds and try again.');
+            if (spam>5) conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' + 'You will have to wait longer than usual, because you have been spamming.');
+        }
+        else {
+            allowance -= 1000;
+            if (spam>0) spam--;
+            data = data.trim();
+            conn.write('[' + moment().format("MMM DD HH:mm:ss") +
+                '] >You< ' + data);
+            // the first piece of data we expect is the nickname
+            if (!nickname) { //see if it fits all the criteria
+                if (users[data]) {
+                    conn.write(
+                        '[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' + 'That nickname is already in use. Try again. '
+                    );
+                    return;
+                } 
+                else if (data.length > 14) { //because nobody wants enourmous names. 14 seems reasonable
+                    conn.write(
+                        '[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' +'Your name is too long (>14 chars). Try again. '
+                    );
+                    return;
+                } 
+                else if (!data.match(/\S+/)) {
+                    conn.write(
+                        '[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' +'Your name cannot be a blank space. Try again. '
+                    );
+                    return;
+                } 
+                else if (!data.match(/^[A-Za-z0-9_]{2,}$/)) {
+                    conn.write(
+                        '[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' +'Only letters, digits, and underscore are accepted. You need at least 2 characters. Please try again.'
+                    );
+                    return;
+                } 
+                else if (!data.match(/[A-Za-z]+/)) {
+                    conn.write(
+                        '[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' +'Your name has to have at least one letter in it. Please try again.'
+                    );
+                    return;
+                } 
+                else if ((data.toLowerCase() == "admin") || (data
+                        .toLowerCase() == "mod") || (data.toLowerCase() ==
+                        "administrator") || (data.toLowerCase() ==
+                        "moderator") || (data.toLowerCase() ==
+                        "broadcast") || (data.toLowerCase() ==
+                        "whisper") || (data.toLowerCase() ==
+                        "system") || (data.toLowerCase() ==
+                        "you")) {
+                    conn.write(
+                        '[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' +'You entered a reserved word. Please choose a different name and try again. '
+                    );
+                    return;
+                } 
+                else { //it fits the criteria!
+                    nickname = data;
+                    users[nickname] = conn;
+                    rooms[0][0]['value'][nickname] = conn; //room[0][0] is the lobby
+                    conn.write(
+                        '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +'You joined the server and "lobby" room as '+ nickname +
+                        '\nYou can get a list of commands by typing "/\help"'
+                    );
+                    broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname +
+                        ' joined the "'+ currentRoomName['value'] +'" room\033[39m\n', false,
+                        nickname, currentRoomName);
+                }
+            }
+            //once we have the nickname establishied we can focus on parsing commands
+            else {
+                processData(data, nickname, conn, currentRoomName);
+            }
+
+        } //bucket function
+
     });
     conn.on('close', function() {
         delete users[nickname];
@@ -522,6 +558,11 @@ var server = net.createServer(function(conn) {
 
     // the user nickname for the current connection
     var nickname;
+    var rate = 5000; // unit: messages
+    var per  = 7000; // unit: seconds
+    var allowance = rate; // unit: messages
+    var last_check = Date.now(); // floating-point, e.g. usec accuracy. Unit: seconds
+    var spam=0;
     //defaulting to lobby
     var currentRoomName = {
         'value': 'lobby'
@@ -529,67 +570,96 @@ var server = net.createServer(function(conn) {
 
     //this is the entry point of the first input
     conn.on('data', function(data) {
-        data = data.trim();
-        // the first piece of data we expect is the nickname
-        if (!nickname) { //see if it fits all the criteria
-            if (users[data]) {
-                conn.write(
-                    '\033[93m > That nickname is already in use. Try again:\033[39m '
-                );
-                return;
-            } 
-            else if (data.length > 14) { //because nobody wants enourmous names. 14 seems reasonable
-                conn.write(
-                    '\033[93m > Your name is too long (>14 chars). Try again:\033[39m '
-                );
-                return;
-            } 
-            else if (!data.match(/\S+/)) {
-                conn.write(
-                    '\033[93m > Your name cannot be a blank space. Try again:\033[39m '
-                );
-                return;
-            } 
-            else if (!data.match(/^[A-Za-z0-9_]{2,}$/)) {
-                conn.write(
-                    '\033[93m > Only letters, digits, and underscore are accepted. You need at least 2 characters. Please try again:\033[39m '
-                );
-                return;
-            } 
-            else if (!data.match(/[A-Za-z]+/)) {
-                conn.write(
-                    '\033[93m > Your name has to have at least one letter in it. Please try again:\033[39m '
-                );
-                return;
-            } 
-            else if ((data.toLowerCase() == "admin") || (data
-                    .toLowerCase() == "mod") || (data.toLowerCase() ==
-                    "administrator") || (data.toLowerCase() ==
-                    "moderator") || (data.toLowerCase() ==
-                    "broadcast") || (data.toLowerCase() ==
-                    "system") || (data.toLowerCase() ==
-                    "you")) {
-                conn.write(
-                    '\033[93m > You entered a reserved word. Please choose a different name and try again:\033[39m '
-                );
-                return;
-            } 
-            else { //it fits the criteria!
-                nickname = data;
-                users[nickname] = conn;
-                rooms[0][0]['value'][nickname] = conn; //room[0][0] is the lobby
-                conn.write(
-                    '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +'You joined the server and "lobby" room as '+ nickname +
-                    '\nYou can get a list of commands by typing "/\help"\n'
-                );
-                broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname +
-                    ' joined the "'+ currentRoomName['value'] +'" room\033[39m\n', false,
-                    nickname, currentRoomName);
-            }
+        var current = Date.now();
+        var time_passed = current - last_check;
+        last_check = current;
+
+        if (spam > 5) {
+            if (spam>10) per=30000;
+            else if (spam>15) per=60000;
+            else if (spam>20) per=120000;
+            else per=15000;
         }
-        //once we have the nickname establishied we can focus on parsing commands
         else {
-            processData(data, nickname, conn, currentRoomName);
+            per = 7000;
+        }
+        allowance += time_passed * (rate / per);
+        if (allowance > rate) {
+            allowance = rate; // throttle
+            if (spam>0) spam--;
+        }
+        if (allowance < 1000) {
+            //discard_message;
+            spam++;
+            conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' + 'You have hit the message limit. \nPlease wait a few seconds and try again.');
+            if (spam>5) conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' + 'You will have to wait longer than usual, because you have been spamming.');
+        }
+        else {
+            allowance -= 1000;
+            if (spam>0) spam--;
+            data = data.trim();
+            // the first piece of data we expect is the nickname
+            if (!nickname) { //see if it fits all the criteria
+                if (users[data]) {
+                    conn.write(
+                        '\033[93m > That nickname is already in use. Try again:\033[39m '
+                    );
+                    return;
+                } 
+                else if (data.length > 14) { //because nobody wants enourmous names. 14 seems reasonable
+                    conn.write(
+                        '\033[93m > Your name is too long (>14 chars). Try again:\033[39m '
+                    );
+                    return;
+                } 
+                else if (!data.match(/\S+/)) {
+                    conn.write(
+                        '\033[93m > Your name cannot be a blank space. Try again:\033[39m '
+                    );
+                    return;
+                } 
+                else if (!data.match(/^[A-Za-z0-9_]{2,}$/)) {
+                    conn.write(
+                        '\033[93m > Only letters, digits, and underscore are accepted. You need at least 2 characters. Please try again:\033[39m '
+                    );
+                    return;
+                } 
+                else if (!data.match(/[A-Za-z]+/)) {
+                    conn.write(
+                        '\033[93m > Your name has to have at least one letter in it. Please try again:\033[39m '
+                    );
+                    return;
+                } 
+                else if ((data.toLowerCase() == "admin") || (data
+                        .toLowerCase() == "mod") || (data.toLowerCase() ==
+                        "administrator") || (data.toLowerCase() ==
+                        "moderator") || (data.toLowerCase() ==
+                        "broadcast") || (data.toLowerCase() ==
+                        "whisper") || (data.toLowerCase() ==
+                        "system") || (data.toLowerCase() ==
+                        "you")) {
+                    conn.write(
+                        '\033[93m > You entered a reserved word. Please choose a different name and try again:\033[39m '
+                    );
+                    return;
+                } 
+                else { //it fits the criteria!
+                    nickname = data;
+                    users[nickname] = conn;
+                    rooms[0][0]['value'][nickname] = conn; //room[0][0] is the lobby
+                    conn.write(
+                        '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +'You joined the server and "lobby" room as '+ nickname +
+                        '\nYou can get a list of commands by typing "/\help"\n'
+                    );
+                    broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname +
+                        ' joined the "'+ currentRoomName['value'] +'" room\033[39m\n', false,
+                        nickname, currentRoomName);
+                }
+            }
+            //once we have the nickname establishied we can focus on parsing commands
+            else {
+                processData(data, nickname, conn, currentRoomName);
+            }
         }
     });
 
