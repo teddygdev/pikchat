@@ -288,7 +288,7 @@ function createRoom(data, conn) {
 }
 
 function getAllUsers(conn, nickname) {
-    conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + '\033[92mUsers\033[39m connected to the \033[92mServer\033[39m:');
+    conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m \033[92mUsers\033[39m connected to the \033[92mServer\033[39m:');
     for (var i in users) {
         if (i == nickname) conn.write('\n * ' + i +
             ' \033[92m(** this is you **)\033[39m');
@@ -299,18 +299,23 @@ function getAllUsers(conn, nickname) {
 }
 
 function processData(data, nickname, conn, currentRoomName) {
-    if (data == "/quit") {
-        conn.write(
-            '\n\033[93m > Bye-bye! Have an amazingly awesome day!\033[39m\n'
-        );
+    if (data.trim()=="") {
+        conn.write(' \033[91m>System<\033[39m \033[93mYou cannot send an empty message.\033[39m\n');
+    }
+    else if (data == "/quit") {
+        conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m Bye! Have an amazingly awesome day/night!');
         conn.end();
-    } else if (data == "/users") {
+    } 
+    else if (data == "/users") {
         getUsers(conn, nickname, currentRoomName);
-    } else if (data == "/allusers") {
+    } 
+    else if (data == "/allusers") {
         getAllUsers(conn, nickname);
-    } else if (data == "/rooms") {
+    } 
+    else if (data == "/rooms") {
         listRooms(currentRoomName, conn);
-    } else if (data.match(/^\/whisper|^\/w/)) {
+    } 
+    else if (data.match(/^\/whisper|^\/w/)) {
         try { //have to do some bothersome parsing, but not worth it bringing a parsing module just for this
             data = data.trim();
             var name = data.split(/\s+/)[1];
@@ -321,71 +326,54 @@ function processData(data, nickname, conn, currentRoomName) {
             var message = data.substring(n + m, p);
             message = message.trim();
             if (message == "") conn.write(
-                ' \033[93m> You cannot send an empty message.\033[39m\n'
+                '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m \033[93mOh-oh. Error. You cannot send someone an empty message.\033[39m\n'
             );
             else {
                 try {
                     whisper(message, name, nickname, conn);
                 } catch (err) {
                     conn.write(
-                        ' \033[93m> Oh-oh. Error. Are you sure the receiver exists? Maybe you\'ve made a typo? Case matters!\033[39m\n'
+                        '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m \033[93mOh-oh. Error. Are you sure the receiver exists? Maybe you\'ve made a typo? Case matters!\033[39m\n'
                     );
                 }
             }
         } catch (err) {
             conn.write(
-                ' \033[93m> Oh-oh. Error. Did you add a receiver and a message?\033[39m\n'
+                '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m \033[93mOh-oh. Error. Did you add a receiver and a message?\033[39m\n'
             );
         }
-    } else if (data == "/help") {
-        conn.write('\n > The list of possible commands are:');
-        conn.write(
-            '\n > \033[94m\/help\033[39m - Show the help screen with commands'
-        );
-        conn.write(
-            '\n > \033[94m\/quit\033[39m - Disconnects from the chat server and exits'
-        );
-        conn.write(
-            '\n > \033[94m\/leave\033[39m - Leaves current room and goes back to lobby'
-        );
-        conn.write(
-            '\n > \033[94m\/rooms\033[39m - Shows a list of all possible rooms and people in them'
-        );
-        conn.write(
-            '\n > \033[94m\/join [roomname]\033[39m - Joins one of the existing rooms'
-        );
-        conn.write(
-            '\n > \033[94m\/users\033[39m - Shows a list of all connected people to the current room'
-        );
-        conn.write(
-            '\n > \033[94m\/allusers\033[39m - Shows a list of all connected people to server'
-        );
-        conn.write(
-            '\n > \033[94m\/whisper [receiver] [message]\033[39m - Send a private message. Can be any user in any room'
-        );
-        conn.write('\n > Q: How do I change my name?');
-        conn.write(
-            '\n > A: You have to exit the server and rejoin to get a new name.'
-        );
-        conn.write('\n > Q: Can I create a chat room?');
-        conn.write('\n > A: Not as of now.\n');
+    } 
+    else if (data == "/help") {
+        conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m The list of possible commands are:\n' +
+            '\n \033[94m\/help\033[39m - Show the help screen with commands' +
+            '\n \033[94m\/quit\033[39m - Disconnects from the chat server and exits' +
+            '\n \033[94m\/leave\033[39m - Leaves current room and goes back to lobby' +
+            '\n \033[94m\/rooms\033[39m - Shows a list of all possible rooms and people in them' +
+            '\n \033[94m\/create [room name]\033[39m - Create a nwe room for people to join' +
+            '\n \033[94m\/join [roomname]\033[39m - Joins one of the existing rooms' +
+            '\n \033[94m\/users\033[39m - Shows a list of all connected people to the current room' +
+            '\n \033[94m\/allusers\033[39m - Shows a list of all connected people to server' +
+            '\n \033[94m\/whisper [receiver] [message]\033[39m - Send a private message. Can be any user in any room' +
+            '\n \033[94m\/w [receiver] [message]\033[39m - Shorter version of whisper\n' +
+            '\n FAQ:' +
+            '\n Q: How do I change my name?' +
+            '\n A: You have to exit the server and rejoin to get a new name.' +
+            '\n Q: Why did my favorite room disapper?' +
+            '\n A: Empty rooms are deleted every 5 minutes. You can just create it again.\n');
 
-    } else if (data == "/leave") {
+    } 
+    else if (data == "/leave") {
         //reusing the /join here. This is what the /leave is supposed to do, right?
         if (currentRoomName['value'] != 'lobby') {
             changeRoom('lobby', nickname, conn, currentRoomName);
         } else {
             conn.write(
-                '\n \033[93m> You are in the Lobby, you cannot go up any further.\033[39m'
-            );
-            conn.write(
-                '\n > You can quit the chat server with "\033[94m/\quit\033[39m".'
-            );
-            conn.write(
-                '\n > Or you could join a specific room with "\033[94m/\join [roomname]\033[39m".\n'
+                '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m \033[93mYou are in the "lobby" room, you cannot go up any further.\033[39m' +
+                ' If you want to quit the server you have to enter: "\033[94m/\quit\033[39m".\n'
             );
         }
-    } else if (data.match(/^\/join/)) {
+    } 
+    else if (data.match(/^\/join/)) {
         //some mild parsing again, but not as bad the the /whisper parsing
         var pass = false;
         try {
@@ -395,7 +383,7 @@ function processData(data, nickname, conn, currentRoomName) {
             var pass = true;
         } catch (err) {
             conn.write(
-                ' \033[93m> You have not specified a room to join.\033[39m\n'
+                '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m \033[93mYou have not specified a room to join.\033[39m\n'
             );
         }
         if (pass === true) {
@@ -408,12 +396,13 @@ function processData(data, nickname, conn, currentRoomName) {
                     }
                 }
             }
-            if (pass2 == false) conn.write('\033[93m > Room "' + data +
+            if (pass2 == false) conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m \033[93mRoom "' + data +
                 '" does not exist.\033[39m\n');
 
         }
 
-    } else if (data.match(/^\/create/)) {
+    } 
+    else if (data.match(/^\/create/)) {
         //some mild parsing again, but not as bad the the /whisper parsing
         var pass = false;
         try {
@@ -423,7 +412,7 @@ function processData(data, nickname, conn, currentRoomName) {
             var pass = true;
         } catch (err) {
             conn.write(
-                ' \033[93m> You have not specified a room to create.\033[39m\n'
+                '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m \033[93mYou have not specified a room to create.\033[39m\n'
             );
         }
         if (pass === true) {
@@ -436,7 +425,7 @@ function processData(data, nickname, conn, currentRoomName) {
                     }
                 }
             }
-            if (pass2 == false) conn.write('\033[93m > Room "' + data +
+            if (pass2 == false) conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m \033[93mRoom "' + data +
                 '" already exists.\033[39m\n');
             else {
                 createRoom(data, conn);
@@ -444,7 +433,8 @@ function processData(data, nickname, conn, currentRoomName) {
 
         }
 
-    } else {
+    } 
+    else {
         // if we have the name and it is not a command, it can only be a message
         broadcast('\033[96m >' + nickname + '<\033[39m ' + data + '\n',
             false, nickname, currentRoomName);
@@ -455,14 +445,13 @@ function processData(data, nickname, conn, currentRoomName) {
 function whisper(msg, receiver, nickname, conn) {
 
     if (nickname != receiver) {
-        users[receiver].write('\033[95m' + moment().format(
-                "MMMDD|HH:mm:ss ") + 'from: ' + nickname + ' > ' + msg +
+        users[receiver].write('[' + moment().format("MMM DD HH:mm:ss") + ']\033[95m >#whisper#< FROM: ' + nickname + ' MSG: ' + msg +
             '\033[39m\n');
-        conn.write('\033[95m' + moment().format("MMMDD|HH:mm:ss ") + 'to: ' +
-            receiver + ' > ' + msg + '\033[39m\n');
+        conn.write('[' + moment().format("MMM DD HH:mm:ss") + ']\033[95m >#whisper#< TO: ' + receiver + ' MSG: ' + msg +
+            '\033[39m\n');
     } else {
         conn.write(
-            '\033[93m > You cannot send a whisper to yourself.\033[39m\n'
+            '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m \033[93mYou cannot send a whisper to yourself.\033[39m\n'
         );
     }
 
@@ -471,19 +460,20 @@ function whisper(msg, receiver, nickname, conn) {
 
 
 function listRooms(currentRoomName, conn) {
-    conn.write('\n > \033[92mActive Rooms\033[39m are:');
+    conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m \033[92mActive Rooms\033[39m are:');
     for (var i in rooms) { //go through all array elements (rooms)
         for (var j in rooms[i]) {
             if (rooms[i][j]['name'] === currentRoomName['value']) { //check if room name from the array equals the argument name
-                conn.write('\n > >>>>> You are here: \033[92m' +
+                conn.write('\n * \033[92m' +
                     currentRoomName['value'] + '\033[39m' + ' (' +
-                    Object.keys(rooms[i][j]['value']).length + ')');
+                    Object.keys(rooms[i][j]['value']).length + ') << You are here');
             } else {
-                conn.write('\n > * ' + rooms[i][j]['name'] + ' (' + Object.keys(
+                conn.write('\n * ' + rooms[i][j]['name'] + ' (' + Object.keys(
                     rooms[i][j]['value']).length + ')');
             }
         }
     }
+    conn.write('\n << End of rooms list >>\n');
 }
 
 
@@ -495,8 +485,11 @@ var server = net.createServer(function(conn) {
 
     //some welcoming and relaxing ascii art    
     conn.write(
-        '\n    　　　　　　　　 ,.' + '\n　　　　　 　　 /ﾉ' + '\n　 　 (＼;\'\'~⌒ヾ,' +
-        '\n　　　 ~\'ﾐ　 ・　ｪ)　　　piKchat' + '\n　　　　 .,ゝ　 i\"' +
+        '\n    　　　　　　　　 ,.' + 
+        '\n　　　　　 　　 /ﾉ' +
+        '\n　 　 (＼;\'\'~⌒ヾ,' +
+        '\n　　　 ~\'ﾐ　 ・　ｪ)　　　piKchat' + 
+        '\n　　　　 .,ゝ　 i\"' +
         '\n　ヘ\'\"\"~　　　ﾐ 　　　\゛　　～8' +
         '\n　　,)　ﾉ,,_,　,;\'ヽ) 　　　（○）　　（○）' +
         '\n　　し\'し\'　l,ﾉ 　　　　　 ヽ|〃　　ヽ|〃'
