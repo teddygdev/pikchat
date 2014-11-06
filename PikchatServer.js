@@ -517,10 +517,29 @@ function processData(data, nickname, conn, currentRoomName) {
             data = data.trim();
             data = data.toLowerCase();
             var pass = true;
-        } catch (err) {
+        } 
+        catch (err) {
             conn.write(
                 '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m \033[93mYou have not specified a room to create.\033[39m\n'
             );
+        }
+        try {
+            if (!data.match(/^[A-Za-z0-9_]{2,}$/)) {
+                    conn.write(
+                        '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +
+                        '\033[93mOnly letters, digits, and underscore are accepted. You need at least 2 characters. Please try again.\033[39m\n'
+                    );
+                    pass=false;
+                }
+            if (data.length > 20) { //because nobody wants enourmous names. 14 seems reasonable
+                conn.write(
+                    '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +'\033[93mYour room name is too long (>20 chars). Please try again.\033[39m\n'
+                );
+                pass=false;
+            }     
+        } 
+        catch (err) {
+            pass=false;
         }
         if (pass === true) {
             var pass2 = true;
