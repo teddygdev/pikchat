@@ -194,7 +194,7 @@ function onClose (nickname, currentRoomName) {
             }
         }
         broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname.value +
-            ' left the "' + currentRoomName['value'] + '" room\033[39m\n', false, nickname,
+            ' \033[91mLEFT\033[39m \033[90mthe "' + currentRoomName['value'] + '" room\033[39m\n', false, nickname,
             currentRoomName);
 }
 
@@ -221,8 +221,8 @@ function onData (nickname, rate, per, allowance, last_check, spam, currentRoomNa
     if (allowance.value < 1000) {
         //discard_message;
         spam.value++;
-        conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' + 'You have hit the message limit. \nPlease wait a few seconds and try again.');
-        if (spam.value>5) conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' + 'You will have to wait longer than usual, because you have been spamming.');
+        conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' + 'You have hit the message limit. \nPlease wait a few seconds and try again.\n');
+        if (spam.value>5) conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' + 'You will have to wait longer than usual, because you have been spamming.\n');
     }
     else {
         allowance.value -= 1000;
@@ -233,31 +233,32 @@ function onData (nickname, rate, per, allowance, last_check, spam, currentRoomNa
         if (!nickname.value) { //see if it fits all the criteria
             if (users[data]) {
                 conn.write(
-                    '[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' + 'That nickname is already in use. Try again. '
+                    '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + '\033[93mThat nickname is already in use. Please try again.\033[39m\n'
                 );
                 return;
             } 
-            else if (data.length > 14) { //because nobody wants enourmous names. 14 seems reasonable
+            else if (data.length > 20) { //because nobody wants enourmous names. 14 seems reasonable
                 conn.write(
-                    '[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' +'Your name is too long (>14 chars). Try again. '
+                    '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +'\033[93mYour name is too long (>20 chars). Please try again.\033[39m\n'
                 );
                 return;
             } 
             else if (!data.match(/\S+/)) {
                 conn.write(
-                    '[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' +'Your name cannot be a blank space. Try again. '
+                    '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +'\033[93mYour name cannot be a blank space. Please try again.\033[39m\n'
                 );
                 return;
             } 
             else if (!data.match(/^[A-Za-z0-9_]{2,}$/)) {
                 conn.write(
-                    '[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' +'Only letters, digits, and underscore are accepted. You need at least 2 characters. Please try again.'
+                    '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +
+                    '\033[93mOnly letters, digits, and underscore are accepted. You need at least 2 characters. Please try again.\033[39m\n'
                 );
                 return;
             } 
             else if (!data.match(/[A-Za-z]+/)) {
                 conn.write(
-                    '[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' +'Your name has to have at least one letter in it. Please try again.'
+                    '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +'\033[93mYour name has to have at least one letter in it. Please try again.\033[39m\n'
                 );
                 return;
             } 
@@ -270,7 +271,7 @@ function onData (nickname, rate, per, allowance, last_check, spam, currentRoomNa
                     "system") || (data.toLowerCase() ==
                     "you")) {
                 conn.write(
-                    '[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' +'You entered a reserved word. Please choose a different name and try again. '
+                    '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +'\033[93mYou entered a reserved word. Please choose a different name and try again.\033[39m\n'
                 );
                 return;
             } 
@@ -279,11 +280,11 @@ function onData (nickname, rate, per, allowance, last_check, spam, currentRoomNa
                 users[nickname.value] = conn;
                 rooms[0][0]['value'][nickname.value] = conn; //room[0][0] is the lobby
                 conn.write(
-                    '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +'You joined the server and "lobby" room as '+ nickname.value +
-                    '\nYou can get a list of commands by typing "/\help"'
+                    '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +'You \033[92mJOINED\033[39m the server and "\033[93mlobby\033[39m" room as user \033[96m' +
+                    nickname.value + '\033[39m\nYou can get a list of commands by typing "/\help"\n'
                 );
                 broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname.value +
-                    ' joined the "'+ currentRoomName['value'] +'" room\033[39m\n', false,
+                    ' \033[92mJOINED\033[39m \033[90mthe "'+ currentRoomName['value'] +'" room\033[39m\n', false,
                     nickname, currentRoomName);
             }
         }
@@ -313,8 +314,8 @@ function broadcast(msg, sendMyself, nickname, currentRoomName) {
 
 function getUsers(conn, nickname, currentRoomName) {
     var roomCount = 0;
-    conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + '\033[92mUsers\033[39m in room \033[92m"' +
-        currentRoomName['value'] + '"\033[39m:');
+    conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + '\033[92mUsers\033[39m in room "\033[93m' +
+        currentRoomName['value'] + '\033[39m":');
     for (var i in rooms) { //go through all array elements (rooms)
         for (var j in rooms[i]) {
             if (rooms[i][j]['name'] === currentRoomName['value']) { //check if room name from the array equals the argument name
@@ -344,7 +345,7 @@ function changeRoom(data, nickname, conn, currentRoomName) {
             for (var j in rooms[i]) {
                 if (rooms[i][j]['name'] === currentRoomName['value']) { //check if room name from the array equals the argument name
                     broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname.value +
-                        ' left the "' + currentRoomName['value'] + '" room\033[39m\n', false, nickname,
+                        ' \033[91mLEFT\033[39m \033[90mthe "' + currentRoomName['value'] + '" room\033[39m\n', false, nickname,
                         currentRoomName);
                     delete rooms[i][j]['value'][nickname.value];
                     currentRoomName['value'] = data;
@@ -357,10 +358,9 @@ function changeRoom(data, nickname, conn, currentRoomName) {
             for (var j in rooms[i]) {
                 if (rooms[i][j]['name'] === data) { //check if room name from the array equals the argument name
                     rooms[i][j]['value'][nickname.value] = conn;
-                    conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + '<< You are now in room: "' + data + '" >>\n');  
-                    //I feel this is a bit useless, so I am hiding it.
+                    conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + '<< You are now in room: "\033[93m' + data + '\033[39m" >>\n'); 
                     broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname.value +
-                        ' joined the "'+ currentRoomName['value'] +'" room\033[39m\n', false,
+                        ' \033[92mJOINED\033[39m \033[90mthe "'+ currentRoomName['value'] +'" room\033[39m\n', false,
                         nickname, currentRoomName);
                     getUsers(conn, nickname, currentRoomName);
                 }
@@ -379,9 +379,10 @@ function createRoom(data, conn) {
             'value': {}
         };
         rooms.push(object);
-        conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + ' You have successfully created the room: "' + data + '"\n' +
-            'You can join by writing "/join ' + data + '"\nNote: Empty rooms are deleted every 5 minutes.\n');
+        conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + 'You have \033[92msuccessfully\033[39m created the room: "\033[93m' + data + '\033[39m"\n' +
+            'You can join it by writing "\033[94m/join ' + data + '\033[39m"\n\033[93mNote: Empty rooms are deleted every 5 minutes.\033[39m\n');
     } catch (err) {
+        conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + '\033[93mThere was a problem creating the room. Please try again.\033[39m\n');
         console.log('[' + moment().format("MMM DD HH:mm:ss") + '] Error creating a room');
         console.log('[' + moment().format("MMM DD HH:mm:ss") + ']' + err);
     }
@@ -399,9 +400,13 @@ function getAllUsers(conn, nickname) {
 }
 
 function processData(data, nickname, conn, currentRoomName) {
-    if (data.trim()=="") {
+    if (data=="") {
         conn.write(' \033[91m>System<\033[39m \033[93mYou cannot send an empty message.\033[39m\n');
     }
+    else if (data.length > 250) {
+        conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m Your message is too long! Keep it under \033[93m250 chars!\033[39m');
+        conn.end();
+    } 
     else if (data == "/quit") {
         conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m Bye! Have an awesome day!');
         conn.end();
@@ -455,11 +460,13 @@ function processData(data, nickname, conn, currentRoomName) {
             '\n \033[94m\/allusers\033[39m - Shows a list of all connected people to server' +
             '\n \033[94m\/whisper [receiver] [message]\033[39m - Send a private message. Can be any user in any room' +
             '\n \033[94m\/w [receiver] [message]\033[39m - Shorter version of whisper\n' +
-            '\n FAQ:' +
+            '\n \033[93mFAQ:\033[39m' +
             '\n Q: How do I change my name?' +
             '\n A: You have to exit the server and rejoin to get a new name.' +
+            '\n Q: What is the message rate limit?' +
+            '\n A: You can send 5 messages/commands every 7 seconds. If you spam a lot you will get less messages per 7 seconds until you calm down.' +
             '\n Q: Why did my favorite room disapper?' +
-            '\n A: Empty rooms are deleted every 5 minutes. You can just create it again.\n');
+            '\n A: Empty rooms are deleted every 5 minutes. You can just create it again. Remember to join it!\n');
 
     } 
     else if (data == "/leave") {
