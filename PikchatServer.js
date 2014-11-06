@@ -52,7 +52,9 @@ chat.on('connection', function(conn) {
 
     });
     conn.on('close', function() {
-       onClose(nickname, currentRoomName);
+        count--;
+        onClose(nickname, currentRoomName);
+        console.log("[" + moment().format("MMM DD HH:mm:ss") + "] \033[91mUsers connected: " + count + "\033[39m");
     });
 });
 
@@ -82,7 +84,7 @@ app.get('/', routes.index);
 //app.get('/*', routes.index);
 
 var server = http.createServer(app).listen(app.get('port'), function() {
-    console.log('Express server listening on port ' + app.get('port'));
+    console.log('[' + moment().format('MMM DD HH:mm:ss') + '] Express server listening on port ' + app.get('port'));
 });
 chat.installHandlers(server, {
     prefix: '/chat'
@@ -120,7 +122,7 @@ var server = net.createServer(function(conn) {
     );
     //count++;
     //for keeping track of connected users
-    //console.log(moment().format("MMMDD|HH:mm:ss") + " \033[92mUsers connected: " + count + "\033[39m");
+    
 
     //to stringify all incoming data
     conn.setEncoding('utf8');
@@ -151,14 +153,15 @@ var server = net.createServer(function(conn) {
     });
 
     conn.on('close', function() {
+        count--;
         onClose(nickname, currentRoomName);
+        console.log("[" + moment().format("MMM DD HH:mm:ss") + "] \033[91mUsers connected: " + count + "\033[39m");
     });
 });
 
 
 server.listen(4000, function() {
-    console.log(moment().format("MMMDD|HH:mm:ss") +
-        " \033[96m   server listening on *:4000\033[39m");
+    console.log('[' + moment().format('MMM DD HH:mm:ss') + '] TCP server listening on port 4000');
 });
 
 //function that deletes non-default empty-rooms
@@ -276,6 +279,8 @@ function onData (nickname, rate, per, allowance, last_check, spam, currentRoomNa
                 return;
             } 
             else { //it fits the criteria!
+                count++;
+                console.log("[" + moment().format("MMM DD HH:mm:ss") + "] \033[92mUsers connected: " + count + "\033[39m");
                 nickname.value = data;
                 users[nickname.value] = conn;
                 rooms[0][0]['value'][nickname.value] = conn; //room[0][0] is the lobby
@@ -296,108 +301,7 @@ function onData (nickname, rate, per, allowance, last_check, spam, currentRoomNa
     } //bucket function
 }
 
-function broadcast(msg, sendMyself, nickname, currentRoomName) {
-    for (var i in rooms) { //go through all array elements (rooms)
-        for (var j in rooms[i]) {
-            if (rooms[i][j]['name'] === currentRoomName['value']) { //check if room name from the array equals the argument name
-                for (k in rooms[i][j]['value']) { //for that room go through all values (users)
-                    if (sendMyself || k != nickname.value) { // send/notsend to self or send to all else
-                        rooms[i][j]['value'][k].write('[' + moment().format(
-                            "MMM DD HH:mm:ss") + ']' + msg);
-                        //print on the screen of all that fit the if statement
-                    }
-                }
-            }
-        }
-    }
-}
 
-function getUsers(conn, nickname, currentRoomName) {
-    var roomCount = 0;
-    conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + '\033[92mUsers\033[39m in room "\033[93m' +
-        currentRoomName['value'] + '\033[39m":');
-    for (var i in rooms) { //go through all array elements (rooms)
-        for (var j in rooms[i]) {
-            if (rooms[i][j]['name'] === currentRoomName['value']) { //check if room name from the array equals the argument name
-                for (k in rooms[i][j]['value']) { //for that room go through all values (users)
-                    roomCount++;
-                    if (k == nickname.value) conn.write('\n * ' + k +
-                        ' \033[92m(** this is you **)\033[39m');
-                    else conn.write('\n * ' + k);
-                }
-                conn.write('\n << End of user list >>\n');
-            }
-        }
-    }
-    conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +
-    'Users in room: \033[92m' + roomCount + '\033[39m\n');
-}
-
-function changeRoom(data, nickname, conn, currentRoomName) {
-    if (data == currentRoomName['value']) {
-        conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +'\033[93m> You are already in room: ' + data +
-            '\033[39m\n');
-    } 
-    else {
-        var stopLoop=false;
-        for (var i in rooms) { //go through all array elements (rooms)
-            if (stopLoop===true) break;
-            for (var j in rooms[i]) {
-                if (rooms[i][j]['name'] === currentRoomName['value']) { //check if room name from the array equals the argument name
-                    broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname.value +
-                        ' \033[91mLEFT\033[39m \033[90mthe "' + currentRoomName['value'] + '" room\033[39m\n', false, nickname,
-                        currentRoomName);
-                    delete rooms[i][j]['value'][nickname.value];
-                    currentRoomName['value'] = data;
-                    var stopLoop=true;
-                    break; //so that it doesn't end up being recursive and causing unexpected behaviour
-                }
-            }
-        }
-        for (var i in rooms) { //go through all array elements (rooms)
-            for (var j in rooms[i]) {
-                if (rooms[i][j]['name'] === data) { //check if room name from the array equals the argument name
-                    rooms[i][j]['value'][nickname.value] = conn;
-                    conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + '<< You are now in room: "\033[93m' + data + '\033[39m" >>\n'); 
-                    broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname.value +
-                        ' \033[92mJOINED\033[39m \033[90mthe "'+ currentRoomName['value'] +'" room\033[39m\n', false,
-                        nickname, currentRoomName);
-                    getUsers(conn, nickname, currentRoomName);
-                }
-            }
-        }
-    }
-}
-
-function createRoom(data, conn) {
-    try {
-        var object = {};
-        var myVar = roomNumbers;
-        roomNumbers++;
-        object[myVar] = {
-            'name': data,
-            'value': {}
-        };
-        rooms.push(object);
-        conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + 'You have \033[92msuccessfully\033[39m created the room: "\033[93m' + data + '\033[39m"\n' +
-            'You can join it by writing "\033[94m/join ' + data + '\033[39m"\n\033[93mNote: Empty rooms are deleted every 5 minutes.\033[39m\n');
-    } catch (err) {
-        conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + '\033[93mThere was a problem creating the room. Please try again.\033[39m\n');
-        console.log('[' + moment().format("MMM DD HH:mm:ss") + '] Error creating a room');
-        console.log('[' + moment().format("MMM DD HH:mm:ss") + ']' + err);
-    }
-}
-
-function getAllUsers(conn, nickname) {
-    conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m \033[92mUsers\033[39m connected to the \033[92mServer\033[39m:');
-    for (var i in users) {
-        if (i == nickname.value) conn.write('\n * ' + i +
-            ' \033[92m(** this is you **)\033[39m');
-        else conn.write('\n * ' + i);
-    }
-    conn.write('\n << End of user list >>\n');
-    //conn.write('\n > Total users in server: \033[92m' + count + '\033[39m\n');
-}
 
 function processData(data, nickname, conn, currentRoomName) {
     if (data=="") {
@@ -408,7 +312,7 @@ function processData(data, nickname, conn, currentRoomName) {
         conn.end();
     } 
     else if (data == "/quit") {
-        conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m Bye! Have an awesome day!');
+        conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m Bye! Have an awesome day!\n');
         conn.end();
     } 
     else if (data == "/users") {
@@ -565,6 +469,110 @@ function processData(data, nickname, conn, currentRoomName) {
         broadcast('\033[96m >' + nickname.value + '<\033[39m ' + data + '\n',
             false, nickname, currentRoomName);
     }
+}
+
+function broadcast(msg, sendMyself, nickname, currentRoomName) {
+    for (var i in rooms) { //go through all array elements (rooms)
+        for (var j in rooms[i]) {
+            if (rooms[i][j]['name'] === currentRoomName['value']) { //check if room name from the array equals the argument name
+                for (k in rooms[i][j]['value']) { //for that room go through all values (users)
+                    if (sendMyself || k != nickname.value) { // send/notsend to self or send to all else
+                        rooms[i][j]['value'][k].write('[' + moment().format(
+                            "MMM DD HH:mm:ss") + ']' + msg);
+                        //print on the screen of all that fit the if statement
+                    }
+                }
+            }
+        }
+    }
+}
+
+function getUsers(conn, nickname, currentRoomName) {
+    var roomCount = 0;
+    conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + '\033[92mUsers\033[39m in room "\033[93m' +
+        currentRoomName['value'] + '\033[39m":');
+    for (var i in rooms) { //go through all array elements (rooms)
+        for (var j in rooms[i]) {
+            if (rooms[i][j]['name'] === currentRoomName['value']) { //check if room name from the array equals the argument name
+                for (k in rooms[i][j]['value']) { //for that room go through all values (users)
+                    roomCount++;
+                    if (k == nickname.value) conn.write('\n * ' + k +
+                        ' \033[92m(** this is you **)\033[39m');
+                    else conn.write('\n * ' + k);
+                }
+                conn.write('\n << End of user list >>\n');
+            }
+        }
+    }
+    conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +
+    'Users in room: \033[92m' + roomCount + '\033[39m\n');
+}
+
+function changeRoom(data, nickname, conn, currentRoomName) {
+    if (data == currentRoomName['value']) {
+        conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +'\033[93m> You are already in room: ' + data +
+            '\033[39m\n');
+    } 
+    else {
+        var stopLoop=false;
+        for (var i in rooms) { //go through all array elements (rooms)
+            if (stopLoop===true) break;
+            for (var j in rooms[i]) {
+                if (rooms[i][j]['name'] === currentRoomName['value']) { //check if room name from the array equals the argument name
+                    broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname.value +
+                        ' \033[91mLEFT\033[39m \033[90mthe "' + currentRoomName['value'] + '" room\033[39m\n', false, nickname,
+                        currentRoomName);
+                    delete rooms[i][j]['value'][nickname.value];
+                    currentRoomName['value'] = data;
+                    var stopLoop=true;
+                    break; //so that it doesn't end up being recursive and causing unexpected behaviour
+                }
+            }
+        }
+        for (var i in rooms) { //go through all array elements (rooms)
+            for (var j in rooms[i]) {
+                if (rooms[i][j]['name'] === data) { //check if room name from the array equals the argument name
+                    rooms[i][j]['value'][nickname.value] = conn;
+                    conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + '<< You are now in room: "\033[93m' + data + '\033[39m" >>\n'); 
+                    broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname.value +
+                        ' \033[92mJOINED\033[39m \033[90mthe "'+ currentRoomName['value'] +'" room\033[39m\n', false,
+                        nickname, currentRoomName);
+                    getUsers(conn, nickname, currentRoomName);
+                }
+            }
+        }
+    }
+}
+
+function createRoom(data, conn) {
+    try {
+        var object = {};
+        var myVar = roomNumbers;
+        roomNumbers++;
+        object[myVar] = {
+            'name': data,
+            'value': {}
+        };
+        rooms.push(object);
+        conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + 'You have \033[92msuccessfully\033[39m created the room: "\033[93m' + data + '\033[39m"\n' +
+            'You can join it by writing "\033[94m/join ' + data + '\033[39m"\n\033[93mNote: Empty rooms are deleted every 5 minutes.\033[39m\n');
+    } catch (err) {
+        conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + '\033[93mThere was a problem creating the room. Please try again.\033[39m\n');
+        console.log('[' + moment().format("MMM DD HH:mm:ss") + '] Error creating a room');
+        console.log('[' + moment().format("MMM DD HH:mm:ss") + ']' + err);
+    }
+}
+
+function getAllUsers(conn, nickname) {
+    conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m \033[92mUsers\033[39m connected to the \033[92mServer\033[39m:');
+    for (var i in users) {
+        if (i == nickname.value) conn.write('\n * ' + i +
+            ' \033[92m(** this is you **)\033[39m');
+        else conn.write('\n * ' + i);
+    }
+    conn.write('\n << End of user list >>\n');
+    conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +
+    'Users in server: \033[92m' + count + '\033[39m\n');
 }
 
 
