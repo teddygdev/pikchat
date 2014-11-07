@@ -32,6 +32,8 @@ var connections = [];
 
 var chat = sockjs.createServer();
 chat.on('connection', function(conn) {
+    count++;
+    console.log("[" + moment().format("MMM DD HH:mm:ss") + "] \033[92mUsers connected: " + count + "\033[39m");
     var nickname={'value':undefined};
     //console.log(nickname.value);
     var rate = {'value':5000}; // unit: messages
@@ -98,6 +100,8 @@ chat.installHandlers(server, {
 ////////////////
 //create the server
 var server = net.createServer(function(conn) {
+    count++;
+    console.log("[" + moment().format("MMM DD HH:mm:ss") + "] \033[92mUsers connected: " + count + "\033[39m");
 
     //some welcoming and relaxing ascii art    
     conn.write(
@@ -279,8 +283,6 @@ function onData (nickname, rate, per, allowance, last_check, spam, currentRoomNa
                 return;
             } 
             else { //it fits the criteria!
-                count++;
-                console.log("[" + moment().format("MMM DD HH:mm:ss") + "] \033[92mUsers connected: " + count + "\033[39m");
                 nickname.value = data;
                 users[nickname.value] = conn;
                 rooms[0][0]['value'][nickname.value] = conn; //room[0][0] is the lobby

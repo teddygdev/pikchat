@@ -1,12 +1,22 @@
+angular.module('filters', []).factory('truncate', function () {
+    return function strip_tags(input, allowed) {
+      allowed = (((allowed || '') + '')
+        .toLowerCase()
+        .match(/<[a-z][a-z0-9]*>/g) || [])
+        .join(''); // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
+      var tags = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi,
+        commentsAndPhpTags = /<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi;
+      return input.replace(commentsAndPhpTags, '')
+        .replace(tags, function($0, $1) {
+          return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : '';
+        });
+    }
+});
+
 var sock = new SockJS('http://localhost:3000/chat');
 
-var app = angular.module('pikchatApp', ['luegg.directives']);
-
-
-
-function ChatCtrl($scope) {
-
-  $scope.valHeight="65vh";
+var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanitize', 'filters']).controller('ChatCtrl', ['$scope', 'truncate', '$sce', function($scope, truncate, $sce){
+    $scope.valHeight="65vh";
   $scope.messages = [];
   var num=1;
 
@@ -52,8 +62,8 @@ function ChatCtrl($scope) {
   }
 
   sock.onmessage = function(e) {
-    console.log(e.data);
-  	e.data = e.data.replace(/\[90m|\[91m|\[92m|\[93m|\[94m|\[95m|\[96m|\[97m|\[39m/g, '');
+    //console.log(e.data);
+    e.data = e.data.replace(/\[90m|\[91m|\[92m|\[93m|\[94m|\[95m|\[96m|\[97m|\[39m/g, '');
     //e.data = e.data.replace(/\n/g, '<br>');
     num++;
     if ((e.data.match(/^\[.+\]/))==null) timeStamp="";
@@ -79,13 +89,27 @@ function ChatCtrl($scope) {
       msgText=e.data.slice(msgStart, e.data.length);
     }
     msgText = msgText.trim();
+    msgText = $sce.trustAsHtml(truncate(msgText, ''));
+    msgText = msgText.toString();
+    msgText = msgText.trim();
     var msgColor = $scope.genColor(name);
     var txtColor = $scope.textColor(msgColor);
+
+    if (msgText=="") {
+      $scope.messages.push({msgNum:0, sender:'System', text:'You cannot send empty messages. Please try again.', time:'', color:'#a45da9', txt: 'white'});
+    }
+    else {
+      $scope.messages.push({msgNum:num, sender:name, text:msgText, time:timeStamp, color:msgColor, txt: txtColor});
+    }
     
-    $scope.messages.push({msgNum:num, sender:name, text:msgText, time:timeStamp, color:msgColor, txt: txtColor});
     $scope.$apply();
   };
-}
+}]);
+
+app.filter('unsafe', function($sce) { return $sce.trustAsHtml; });
+
+
+
 
 
 
