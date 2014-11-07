@@ -1,28 +1,45 @@
-angular.module('filters', []).factory('truncate', function () {
-    return function strip_tags(input, allowed) {
-      allowed = (((allowed || '') + '')
-        .toLowerCase()
-        .match(/<[a-z][a-z0-9]*>/g) || [])
-        .join(''); // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
-      var tags = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi,
-        commentsAndPhpTags = /<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi;
-      return input.replace(commentsAndPhpTags, '')
-        .replace(tags, function($0, $1) {
-          return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : '';
-        });
-    }
-});
+
 
 var sock = new SockJS('http://localhost:3000/chat');
 
-var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanitize', 'filters']).controller('ChatCtrl', ['$scope', 'truncate', '$sce', function($scope, truncate, $sce){
-    $scope.valHeight="65vh";
+var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanitize', 'filters','angular-loading-bar', 'ngAnimate'])
+.controller('ChatCtrl', ['$scope', 'truncate', '$sce','$http', function($scope, truncate, $sce, $http, $timeout){
+  $scope.valHeight="65vh";
   $scope.messages = [];
   var num=1;
 
   $scope.valBg='white';
   $scope.valBorder='black';
   $scope.valColor='black';
+
+  ////
+
+
+  $http.get('http://api.giphy.com/v1/gifs/search?q=funny+cat&api_key=dc6zaTOxFJmzC').
+  success(function(data, status, headers, config) {
+    // this callback will be called asynchronously
+    // when the response is available
+    //console.log(data);
+  }).
+  error(function(data, status, headers, config) {
+    // called asynchronously if an error occurs
+    // or server returns response with an error status.
+  });
+
+
+
+  ///
+
+  $scope.hoverIn = function(){
+        //this.hoverEdit = true;
+        console.log('hover-on');
+    };
+
+    $scope.hoverOut = function(){
+        //this.hoverEdit = false;
+        console.log('hover-out');
+
+    };
 
   $scope.textColor = function(hexcolor) {
     hexcolor = hexcolor.slice( 1 );
@@ -63,6 +80,7 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
 
   sock.onmessage = function(e) {
     //console.log(e.data);
+
     e.data = e.data.replace(/\[90m|\[91m|\[92m|\[93m|\[94m|\[95m|\[96m|\[97m|\[39m/g, '');
     //e.data = e.data.replace(/\n/g, '<br>');
     num++;
@@ -98,8 +116,13 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
     if (msgText=="") {
       $scope.messages.push({msgNum:0, sender:'System', text:'You cannot send empty messages. Please try again.', time:'', color:'#a45da9', txt: 'white'});
     }
+    else if (msgText.match(/^##/))
+      {
+        msgText='<img src="http://media4.giphy.com/media/DFiwMapItOTh6/200.gif">';
+        $scope.messages.push({msgNum:num, sender:name, text:msgText, time:timeStamp, color:msgColor, txt: txtColor, gif:true});
+      }
     else {
-      $scope.messages.push({msgNum:num, sender:name, text:msgText, time:timeStamp, color:msgColor, txt: txtColor});
+      $scope.messages.push({msgNum:num, sender:name, text:msgText, time:timeStamp, color:msgColor, txt: txtColor, gif:false});
     }
     
     $scope.$apply();
@@ -131,3 +154,18 @@ app.directive('enterSubmit', function () {
       }
     }
   });
+
+angular.module('filters', []).factory('truncate', function () {
+    return function strip_tags(input, allowed) {
+      allowed = (((allowed || '') + '')
+        .toLowerCase()
+        .match(/<[a-z][a-z0-9]*>/g) || [])
+        .join(''); // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
+      var tags = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi,
+        commentsAndPhpTags = /<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi;
+      return input.replace(commentsAndPhpTags, '')
+        .replace(tags, function($0, $1) {
+          return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : '';
+        });
+    }
+});
