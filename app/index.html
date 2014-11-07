@@ -38,6 +38,7 @@
     <div ng-controller="ChatCtrl">
       <div class="container">
 
+
         <div class="row">
           <div class="col-md-10">
             <div class="row">
@@ -47,11 +48,11 @@
                     
                       <div ng-repeat="msg in messages track by $index">
                       
-                        <div class="msg msg-info" style="background-color:{{msg.color}}; color:{{msg.txt}}; border-color:black">
+                        <div class="msg msg-info" style="background-color:{{msg.color}}; color:{{msg.txt}}; border-color:black" ng-click="open('sm')" >
                           <strong>{{msg.sender}}</strong><span class="pull-right">{{msg.time}}</span>
                           <!--<div style="white-space: pre-wrap;">{{msg.text}}</div>-->
                           <div ng-if="msg.gif==false" style="white-space: pre-wrap;" ng-bind-html="msg.text |emoji |unsafe"></div>
-                          <div ng-if="msg.gif==true" style="white-space: pre-wrap;"><span ng-init="value = msg.text.still" ng-mouseover="hoverIn(msg.text)" 
+                          <div ng-if="msg.gif==true" style="white-space: pre-wrap;" ><span ng-init="value = msg.text.still" ng-mouseover="hoverIn(msg.text)" 
                           ng-mouseleave="hoverOut(msg.text)" ng-bind-html="value" ></span></div>
                           </div>
                         </div> 
@@ -97,6 +98,7 @@
     <script src="js/md5.js"></script>
     <script src="js/angular-sanitize.min.js"></script>
     <script src="js/emoji.min.js"></script>
+    
     
     <link href="css/emoji.min.css" rel="stylesheet">
   </body>

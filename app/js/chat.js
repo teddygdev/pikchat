@@ -12,6 +12,10 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
   $scope.valBorder='black';
   $scope.valColor='black';
 
+
+
+
+
   ////
 
 
@@ -121,8 +125,8 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
     }
     else if (msgText.match(/^##/))
       {
-        var msgGif='<img src="http://media4.giphy.com/media/DFiwMapItOTh6/200.gif">';
-        var msgStill='<img src="http://media4.giphy.com/media/DFiwMapItOTh6/200_s.gif">';
+        var msgGif='<img src="http://media4.giphy.com/media/DFiwMapItOTh6/200.gif" class="img-responsive"></img>';
+        var msgStill='<img src="http://media4.giphy.com/media/DFiwMapItOTh6/200_s.gif" class="img-responsive-small img-thumbnail"></img>';
         $scope.messages.push({msgNum:num, sender:name, text:{gif:msgGif, still:msgStill}, time:timeStamp, color:msgColor, txt: txtColor, gif:true});
       }
     else {
