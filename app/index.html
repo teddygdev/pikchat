@@ -51,7 +51,8 @@
                           <strong>{{msg.sender}}</strong><span class="pull-right">{{msg.time}}</span>
                           <!--<div style="white-space: pre-wrap;">{{msg.text}}</div>-->
                           <div ng-if="msg.gif==false" style="white-space: pre-wrap;" ng-bind-html="msg.text |emoji |unsafe"></div>
-                          <div ng-mouseover="hoverIn()" ng-mouseleave="hoverOut()" ng-if="msg.gif==true" style="white-space: pre-wrap;" ng-bind-html="msg.text "></div>
+                          <div ng-if="msg.gif==true" style="white-space: pre-wrap;"><span ng-init="value = msg.text.still" ng-mouseover="hoverIn(msg.text)" 
+                          ng-mouseleave="hoverOut(msg.text)" ng-bind-html="value" ></span></div>
                           </div>
                         </div> 
                   </div>

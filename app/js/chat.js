@@ -30,14 +30,17 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
 
   ///
 
-  $scope.hoverIn = function(){
-        //this.hoverEdit = true;
-        console.log('hover-on');
+  $scope.hoverIn = function(msg){
+        //this.hoverGif = true;
+        //console.log('hover-on');
+        //console.log(msg);
+        this.value=msg.gif;
     };
 
-    $scope.hoverOut = function(){
-        //this.hoverEdit = false;
-        console.log('hover-out');
+    $scope.hoverOut = function(msg){
+        //this.hoverGif = false;
+        this.value=msg.still;
+        //console.log('hover-out');
 
     };
 
@@ -118,8 +121,9 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
     }
     else if (msgText.match(/^##/))
       {
-        msgText='<img src="http://media4.giphy.com/media/DFiwMapItOTh6/200.gif">';
-        $scope.messages.push({msgNum:num, sender:name, text:msgText, time:timeStamp, color:msgColor, txt: txtColor, gif:true});
+        var msgGif='<img src="http://media4.giphy.com/media/DFiwMapItOTh6/200.gif">';
+        var msgStill='<img src="http://media4.giphy.com/media/DFiwMapItOTh6/200_s.gif">';
+        $scope.messages.push({msgNum:num, sender:name, text:{gif:msgGif, still:msgStill}, time:timeStamp, color:msgColor, txt: txtColor, gif:true});
       }
     else {
       $scope.messages.push({msgNum:num, sender:name, text:msgText, time:timeStamp, color:msgColor, txt: txtColor, gif:false});
