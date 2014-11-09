@@ -63,16 +63,13 @@
   max-height: 100px;
 }
 
-.animate.ng-enter, .animate.ng-leave {
+.animate.ng-enter{
    -webkit-animation: zoomIn 0.5s;
     -moz-animation:   zoomIn 0.5s;
     -ms-animation:    zoomIn 0.5s;
     animation:        zoomIn 0.5s;
 } 
 
-.animate.ng-enter.ng-enter-active, .animate.ng-leave {
-  
-}
-.animate.ng-leave.ng-leave-active, .animate.ng-enter {
+.animate.ng-leave {
   
 }

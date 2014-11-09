@@ -35,8 +35,9 @@
     </form>
   </div>
   -->
-    <h1>pikChat Web Prototype</h1>
+   
     <div ng-controller="ChatCtrl">
+     <h1>pikChat Web Prototype</h1>
       <div class="container">
 
 
@@ -51,7 +52,13 @@
                       <div ng-repeat="msg in messages track by $index" class="animate">
                       
                         <div class="msg msg-info" style="background-color:{{msg.color}}; color:{{msg.txt}}; border-color:black">
-                          <strong>{{msg.sender}}</strong><span class="pull-right">{{msg.time}}</span>
+                          <strong>{{msg.sender}}</strong>
+                          <span class="pull-right">
+                            <button ng-if="(msg.sender!='System')&&(msg.sender!='You')&&(msg.sender!='PIKCHAT')&&(msg.sender!='#whisper#')" type="button" 
+                            class="btn btn-default btn-xs" ng-init="text = 'Ignore'" ng-click="ignore(msg.sender)">
+                              <span class="glyphicon glyphicon-ban-circle"></span> {{text}}
+                            </button>&nbsp{{msg.time}}
+                          </span>
                           <!--<div style="white-space: pre-wrap;">{{msg.text}}</div>-->
                           <div ng-if="msg.gif==false" style="white-space: pre-wrap;" ng-bind-html="msg.text |emoji |unsafe"></div>
                           <div ng-if="msg.gif==true" style="white-space: pre-wrap;" ><div ng-init="value = msg.text.still" ng-mouseover="hoverIn(msg.text)" 

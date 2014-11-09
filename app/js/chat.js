@@ -7,6 +7,8 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
   $scope.valHeight="65vh";
   $scope.messages = [];
   var num=1;
+  var ignored=[];
+  $scope.msgLimit= 150;
 
   $scope.valBg='white';
   $scope.valBorder='black';
@@ -20,6 +22,23 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
 
   $scope.hoverOut = function(msg){
       this.value=msg.still;
+  };
+
+  $scope.ignore = function(sender){
+    if (this.text=='Ignore') {
+      ignored.push(sender);
+      this.text='Undo Ignore';
+      $scope.messages.push({msgNum:0, sender:'System', text:'You are now ignoring user: '+sender, time:'', color:'#a45da9', txt: 'white', gif:false});
+    }
+    else {
+      for(var i = ignored.length - 1; i >= 0; i--) {
+        if(ignored[i] == sender) {
+          ignored.splice(i, 1);
+        }
+      }
+      this.text='Ignore';
+      $scope.messages.push({msgNum:0, sender:'System', text:'You are no longer ignoring user: '+sender, time:'', color:'#a45da9', txt: 'white', gif:false});
+    }
   };
 
   $scope.textColor = function(hexcolor) {
@@ -47,7 +66,11 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
       var txtColor = $scope.textColor(msgColor);
       $scope.messages.push({msgNum:0, sender:'System', text:'You cannot send empty messages. Please try again.', time:'', color:'#a45da9', txt: 'white', gif:false});
     }
-    
+    if ($scope.messages.length>$scope.msgLimit) {
+      for (var i=0; i<$scope.messages.length-$scope.msgLimit; i++) {
+        $scope.messages.shift();
+      }
+    }
   };
 
   $scope.incrHeight = function(incr) {
@@ -97,95 +120,93 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
     //if (msgText=="") {
     //  $scope.messages.push({msgNum:0, sender:'System', text:'You cannot send empty messages. Please try again.', time:'', color:'#a45da9', txt: 'white',gif:false});
     //}
-    if (msgText.match(/^(\d)+###?(\d|\w)+/)) {
-        var msgBackup = msgText;
-        var searchType='stickers';
-        if (msgText.match(/^(\d)+###(\d|\w)+/)) {
-          searchType='gifs';
-        }
-        //msgText=msgText.replace(/#/g, ' ');
-        msgText = msgText.replace(/\W/g, ' ')
-        var tags=msgText.trim().split(/\s+/g);
-        var chosen=tags[0];
-        console.log(chosen);
+    var send=true;
+    for (var i=0; i<ignored.length; i++) {
+      if (ignored[i]==name) send=false;
+    }
 
-        //for ( i = 0; i < tags.length; i++) {console.log('tag:' + tags[i])};
-        var querystring = '';
-        var first=true;
-        for ( i = 1; i < tags.length; i++) {
-          if ((!tags[i].match(/\s+/))||(tags[i]=='')) {
-            if (first==true) {
-              querystring += tags[i];
-              first=false;
+    if (send==true) {
+      if (msgText.match(/^(\d)+###?(\d|\w)+/)) {
+          var msgBackup = msgText;
+          var searchType='stickers';
+          if (msgText.match(/^(\d)+###(\d|\w)+/)) {
+            searchType='gifs';
+          }
+          //msgText=msgText.replace(/#/g, ' ');
+          msgText = msgText.replace(/\W/g, ' ')
+          var tags=msgText.trim().split(/\s+/g);
+          var chosen=tags[0];
+          console.log(chosen);
+
+          //for ( i = 0; i < tags.length; i++) {console.log('tag:' + tags[i])};
+          var querystring = '';
+          var first=true;
+          for ( i = 1; i < tags.length; i++) {
+            if ((!tags[i].match(/\s+/))||(tags[i]=='')) {
+              if (first==true) {
+                querystring += tags[i];
+                first=false;
+              }
+              else {
+                querystring += '+' + tags[i];
+              } 
             }
-            else {
-              querystring += '+' + tags[i];
-            } 
+          }
+          console.log(querystring);
+          if (querystring=="") {
+            //$scope.messages.push({msgNum:0, sender:'System', text:'You have to enter tags when sending stickers. Please try again.', time:'', color:'#a45da9', txt: 'white',gif:false});
+
+          $scope.messages.push({msgNum:num, sender:name, text:msgBackup, time:timeStamp, color:msgColor, txt: txtColor, gif:false});
+          }
+          else {
+
+            $http.get('http://api.giphy.com/v1/'+searchType+'/search?q='+ querystring +'&limit=1&api_key='+apiKey).
+            success(function(data, status, headers, config) {
+              try {
+                var total=data.pagination.total_count;
+                //console.log('total=' + total);
+                //var chosen = Math.floor(Math.random() * (total - 0 + 1)) + 0;
+
+                $http.get('http://api.giphy.com/v1/'+searchType+'/search?q='+ querystring +'&limit=1&offset='+chosen+'&api_key='+apiKey).
+                success(function(data, status, headers, config) {
+                  // this callback will be called asynchronously
+                  // when the response is available
+                  
+                  //console.log(data.data[0].images.fixed_height.url);
+                  //console.log(data.data[0].images.fixed_height_still.url);
+                  try {
+                    var msgGif='<img src="'+data.data[0].images.fixed_height.url+'" class="img-responsive" spinner-on-load></img>'+msgBackup;
+                    var msgStill='<img src="'+data.data[0].images.fixed_height_still.url+ '" class="img-responsive-small" spinner-on-load></img>'+msgBackup;
+                    $scope.messages.push({msgNum:num, sender:name, text:{gif:msgGif, still:msgStill}, time:timeStamp, color:msgColor, txt: txtColor, gif:true});
+                  }
+                  catch (err) {
+                    msgBackup+= ' :did not return any matches.';
+                    $scope.messages.push({msgNum:num, sender:name, text:msgBackup, time:timeStamp, color:msgColor, txt: txtColor, gif:false});
+                  }
+                  
+                }).
+                error(function(data, status, headers, config) {
+                  // called asynchronously if an error occurs
+                  // or server returns response with an error status.
+                });
+
+
+              }
+              catch (err) {
+                msgBackup+= ' :did not return any matches.';
+                $scope.messages.push({msgNum:num, sender:name, text:msgBackup, time:timeStamp, color:msgColor, txt: txtColor, gif:false});
+              }
+
+            }).
+            error(function(data, status, headers, config) {
+              // called asynchronously if an error occurs
+              // or server returns response with an error status.
+            });
           }
         }
-        console.log(querystring);
-        if (querystring=="") {
-          //$scope.messages.push({msgNum:0, sender:'System', text:'You have to enter tags when sending stickers. Please try again.', time:'', color:'#a45da9', txt: 'white',gif:false});
-
-        $scope.messages.push({msgNum:num, sender:name, text:msgBackup, time:timeStamp, color:msgColor, txt: txtColor, gif:false});
-        }
-        else {
-
-          $http.get('http://api.giphy.com/v1/'+searchType+'/search?q='+ querystring +'&limit=1&api_key='+apiKey).
-          success(function(data, status, headers, config) {
-            try {
-              var total=data.pagination.total_count;
-              //console.log('total=' + total);
-              //var chosen = Math.floor(Math.random() * (total - 0 + 1)) + 0;
-
-              $http.get('http://api.giphy.com/v1/'+searchType+'/search?q='+ querystring +'&limit=1&offset='+chosen+'&api_key='+apiKey).
-              success(function(data, status, headers, config) {
-                // this callback will be called asynchronously
-                // when the response is available
-                
-                //console.log(data.data[0].images.fixed_height.url);
-                //console.log(data.data[0].images.fixed_height_still.url);
-                try {
-                  var msgGif='<img src="'+data.data[0].images.fixed_height.url+'" class="img-responsive"></img>'+msgBackup;
-                  var msgStill='<img src="'+data.data[0].images.fixed_height_still.url+ '" class="img-responsive-small"></img>'+msgBackup;
-                  $scope.messages.push({msgNum:num, sender:name, text:{gif:msgGif, still:msgStill}, time:timeStamp, color:msgColor, txt: txtColor, gif:true});
-                }
-                catch (err) {
-                  msgBackup+= ' :did not return any matches.';
-                  $scope.messages.push({msgNum:num, sender:name, text:msgBackup, time:timeStamp, color:msgColor, txt: txtColor, gif:false});
-                }
-                
-              }).
-              error(function(data, status, headers, config) {
-                // called asynchronously if an error occurs
-                // or server returns response with an error status.
-              });
-
-
-            }
-            catch (err) {
-              msgBackup+= ' :did not return any matches.';
-              $scope.messages.push({msgNum:num, sender:name, text:msgBackup, time:timeStamp, color:msgColor, txt: txtColor, gif:false});
-            }
-
-          }).
-          error(function(data, status, headers, config) {
-            // called asynchronously if an error occurs
-            // or server returns response with an error status.
-          });
-
-
-          
-
-        }
-
-        //console.log(querystring);
-        //var msgGif='<img src="http://media4.giphy.com/media/DFiwMapItOTh6/200.gif" class="img-responsive-small img-thumbnail"></img>';
-        //var msgStill='<img src="http://media4.giphy.com/media/DFiwMapItOTh6/200_s.gif" class="img-responsive-small img-thumbnail"></img>';
-        //$scope.messages.push({msgNum:num, sender:name, text:{gif:msgGif, still:msgStill}, time:timeStamp, color:msgColor, txt: txtColor, gif:true});
+      else {
+        $scope.messages.push({msgNum:num, sender:name, text:msgText, time:timeStamp, color:msgColor, txt: txtColor, gif:false});
       }
-    else {
-      $scope.messages.push({msgNum:num, sender:name, text:msgText, time:timeStamp, color:msgColor, txt: txtColor, gif:false});
     }
     
     $scope.$apply();

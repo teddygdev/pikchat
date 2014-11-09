@@ -201,7 +201,7 @@ function onClose (nickname, currentRoomName) {
                 //delete nickname in all rooms possible. Should be better than checking conditionally for specific room
             }
         }
-        broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname.value +
+        broadcast(' \033[92m>PIKCHAT<\033[39m ' + '\033[90m' + nickname.value +
             ' \033[91mLEFT\033[39m \033[90mthe "' + currentRoomName['value'] + '" room\033[39m\n', false, nickname,
             currentRoomName);
 }
@@ -276,6 +276,7 @@ function onData (nickname, rate, per, allowance, last_check, spam, currentRoomNa
                     "moderator") || (data.toLowerCase() ==
                     "broadcast") || (data.toLowerCase() ==
                     "whisper") || (data.toLowerCase() ==
+                    "pikchat") || (data.toLowerCase() ==
                     "system") || (data.toLowerCase() ==
                     "you")) {
                 conn.write(
@@ -291,7 +292,7 @@ function onData (nickname, rate, per, allowance, last_check, spam, currentRoomNa
                     '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +'You \033[92mJOINED\033[39m the server and "\033[93mlobby\033[39m" room as user \033[96m' +
                     nickname.value + '\033[39m\nYou can get a list of commands by typing "/\help"\n'
                 );
-                broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname.value +
+                broadcast(' \033[92m>PIKCHAT<\033[39m ' + '\033[90m' + nickname.value +
                     ' \033[92mJOINED\033[39m \033[90mthe "'+ currentRoomName['value'] +'" room\033[39m\n', false,
                     nickname, currentRoomName);
             }
@@ -589,7 +590,7 @@ function changeRoom(data, nickname, conn, currentRoomName) {
             if (stopLoop===true) break;
             for (var j in rooms[i]) {
                 if (rooms[i][j]['name'] === currentRoomName['value']) { //check if room name from the array equals the argument name
-                    broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname.value +
+                    broadcast(' \033[92m>PIKCHAT<\033[39m ' + '\033[90m' + nickname.value +
                         ' \033[91mLEFT\033[39m \033[90mthe "' + currentRoomName['value'] + '" room\033[39m\n', false, nickname,
                         currentRoomName);
                     delete rooms[i][j]['value'][nickname.value];
@@ -604,7 +605,7 @@ function changeRoom(data, nickname, conn, currentRoomName) {
                 if (rooms[i][j]['name'] === data) { //check if room name from the array equals the argument name
                     rooms[i][j]['value'][nickname.value] = conn;
                     conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + '<< You are now in room: "\033[93m' + data + '\033[39m" >>\n'); 
-                    broadcast(' \033[92m>piKchat<\033[39m ' + '\033[90m' + nickname.value +
+                    broadcast(' \033[92m>PIKCHAT<\033[39m ' + '\033[90m' + nickname.value +
                         ' \033[92mJOINED\033[39m \033[90mthe "'+ currentRoomName['value'] +'" room\033[39m\n', false,
                         nickname, currentRoomName);
                     getUsers(conn, nickname, currentRoomName);
