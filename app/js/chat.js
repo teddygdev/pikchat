@@ -12,20 +12,7 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
   $scope.valBorder='black';
   $scope.valColor='black';
 
-
-
-
-
-  ////
-
-
-  /*
-  
-  */
-
-
-
-  ///
+  var apiKey='dc6zaTOxFJmzC';
 
   $scope.hoverIn = function(msg){
         this.value=msg.gif;
@@ -110,9 +97,14 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
     //if (msgText=="") {
     //  $scope.messages.push({msgNum:0, sender:'System', text:'You cannot send empty messages. Please try again.', time:'', color:'#a45da9', txt: 'white',gif:false});
     //}
-    if (msgText.match(/^(\d)+##(\d|\w)+/)) {
+    if (msgText.match(/^(\d)+###?(\d|\w)+/)) {
         var msgBackup = msgText;
-        msgText=msgText.replace(/#/g, ' ');
+        var searchType='stickers';
+        if (msgText.match(/^(\d)+###(\d|\w)+/)) {
+          searchType='gifs';
+        }
+        //msgText=msgText.replace(/#/g, ' ');
+        msgText = msgText.replace(/\W/g, ' ')
         var tags=msgText.trim().split(/\s+/g);
         var chosen=tags[0];
         console.log(chosen);
@@ -139,14 +131,14 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
         }
         else {
 
-          $http.get('http://api.giphy.com/v1/stickers/search?q='+ querystring +'&limit=1&api_key=dc6zaTOxFJmzC').
+          $http.get('http://api.giphy.com/v1/'+searchType+'/search?q='+ querystring +'&limit=1&api_key='+apiKey).
           success(function(data, status, headers, config) {
             try {
               var total=data.pagination.total_count;
               //console.log('total=' + total);
               //var chosen = Math.floor(Math.random() * (total - 0 + 1)) + 0;
 
-              $http.get('http://api.giphy.com/v1/stickers/search?q='+ querystring +'&limit=1&offset='+chosen+'&api_key=dc6zaTOxFJmzC').
+              $http.get('http://api.giphy.com/v1/'+searchType+'/search?q='+ querystring +'&limit=1&offset='+chosen+'&api_key='+apiKey).
               success(function(data, status, headers, config) {
                 // this callback will be called asynchronously
                 // when the response is available
@@ -154,8 +146,8 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
                 //console.log(data.data[0].images.fixed_height.url);
                 //console.log(data.data[0].images.fixed_height_still.url);
                 try {
-                  var msgGif='<img src="'+data.data[0].images.fixed_height.url+'" class="img-responsive-small img-thumbnail"></img>'+msgBackup;
-                  var msgStill='<img src="'+data.data[0].images.fixed_height_still.url+ '" class="img-responsive-small img-thumbnail"></img>'+msgBackup;
+                  var msgGif='<img src="'+data.data[0].images.fixed_height.url+'" class="img-responsive"></img>'+msgBackup;
+                  var msgStill='<img src="'+data.data[0].images.fixed_height_still.url+ '" class="img-responsive-small"></img>'+msgBackup;
                   $scope.messages.push({msgNum:num, sender:name, text:{gif:msgGif, still:msgStill}, time:timeStamp, color:msgColor, txt: txtColor, gif:true});
                 }
                 catch (err) {

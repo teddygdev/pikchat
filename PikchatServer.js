@@ -16,7 +16,7 @@ var rooms = [{0: {name: 'lobby',value: {}}},
 var roomNumbers = 5;
 //counter needed for generating more rooms
 
-
+var apiKey='dc6zaTOxFJmzC';
 
 ///////http part
 
@@ -298,7 +298,7 @@ function onData (nickname, rate, per, allowance, last_check, spam, currentRoomNa
         }
         //once we have the nickname establishied we can focus on parsing commands
         else {
-            processData(data, nickname, conn, currentRoomName);
+            processData(data, nickname, conn, currentRoomName, type);
         }
 
     } //bucket function
@@ -306,7 +306,7 @@ function onData (nickname, rate, per, allowance, last_check, spam, currentRoomNa
 
 
 
-function processData(data, nickname, conn, currentRoomName) {
+function processData(data, nickname, conn, currentRoomName, type) {
     if (data=="") {
         conn.write(' \033[91m>System<\033[39m \033[93mYou cannot send an empty message.\033[39m\n');
     }
@@ -467,11 +467,17 @@ function processData(data, nickname, conn, currentRoomName) {
         }
 
     }
-    else if (data.match(/^##/)) {
+    else if (data.match(/^###?/)) {
+        var searchType = 'stickers';
+        if (data.match(/^###/)) {
+            searchType='gifs';
+        }
+        console.log(searchType);
         num = 0;
         var msgText = data;
         var msgBackup = msgText;
-        msgText=msgText.replace(/#/g, ' ');
+        //msgText=msgText.replace(/#/g, ' ');
+        msgText = msgText.replace(/\W/g, ' ');
         var tags=msgText.trim().split(/\s+/g);
 
         //for ( i = 0; i < tags.length; i++) {console.log('tag:' + tags[i])};
@@ -489,19 +495,17 @@ function processData(data, nickname, conn, currentRoomName) {
           }
         }
         if (querystring=='') {
-            broadcast('\033[96m >' + nickname.value + '<\033[39m ' + data + '\n',
-                    false, nickname, currentRoomName);
-                    conn.write(
-                    '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>You<\033[39m '+ data +'\n');
+            broadcast('\033[96m >' + nickname.value + '<\033[39m ' + data + '\n',false, nickname, currentRoomName);
+            if (type=='http') conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>You<\033[39m '+ data +'\n');
         }
         else {
-            request('http://api.giphy.com/v1/stickers/search?q='+ querystring +'&limit=1&api_key=dc6zaTOxFJmzC', function (error, response, body) {
+            request('http://api.giphy.com/v1/'+searchType+'/search?q='+ querystring +'&limit=1&api_key='+apiKey, function (error, response, body) {
               if (!error && response.statusCode == 200) {
                 body = JSON.parse(body);
                 try {
                     var total=body.pagination.total_count;
                     //console.log('total=' + total);
-                    var num = Math.floor(Math.random() * (total - 0 + 1)) + 0;
+                    var num = Math.floor(Math.random() * (total-1 - 0 + 1)) + 0;
                     //console.log(num);
                     broadcast('\033[96m >' + nickname.value + '<\033[39m ' + num + data + '\n',
                     false, nickname, currentRoomName);
