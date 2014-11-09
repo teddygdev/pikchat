@@ -15,12 +15,12 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
   var apiKey='dc6zaTOxFJmzC';
 
   $scope.hoverIn = function(msg){
-        this.value=msg.gif;
-    };
+      this.value=msg.gif;
+  };
 
-    $scope.hoverOut = function(msg){
-        this.value=msg.still;
-    };
+  $scope.hoverOut = function(msg){
+      this.value=msg.still;
+  };
 
   $scope.textColor = function(hexcolor) {
     hexcolor = hexcolor.slice( 1 );
