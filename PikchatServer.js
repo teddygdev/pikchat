@@ -1,6 +1,7 @@
 //module dependencie
 var net = require('net');
 var moment = require('moment');
+var request = require('request');
 
 //keep track of users
 var count = 0,
@@ -38,7 +39,7 @@ chat.on('connection', function(conn) {
     //console.log(nickname.value);
     var rate = {'value':5000}; // unit: messages
     var per  = {'value':7000}; // unit: seconds
-    var allowance = {'value':rate}; // unit: messages
+    var allowance = {'value':rate.value}; // unit: messages
     var last_check = {'value':Date.now()}; // floating-point, e.g. usec accuracy. Unit: seconds
     var spam={'value':0};
 
@@ -146,7 +147,7 @@ var server = net.createServer(function(conn) {
     //console.log(nickname.value);
     var rate = {'value':5000}; // unit: messages
     var per  = {'value':7000}; // unit: seconds
-    var allowance = {'value':rate}; // unit: messages
+    var allowance = {'value':rate.value}; // unit: messages
     var last_check = {'value':Date.now()}; // floating-point, e.g. usec accuracy. Unit: seconds
     var spam={'value':0};
 
@@ -235,7 +236,7 @@ function onData (nickname, rate, per, allowance, last_check, spam, currentRoomNa
         allowance.value -= 1000;
         if (spam.value>0) spam.value--;
         data = data.trim();
-        if (type== 'http') conn.write('[' + moment().format("MMM DD HH:mm:ss") +'] >You< ' + data);
+        if ((type== 'http') &&(!data.match(/^##/))) conn.write('[' + moment().format("MMM DD HH:mm:ss") +'] >You< ' + data);
         // the first piece of data we expect is the nickname
         if (!nickname.value) { //see if it fits all the criteria
             if (users[data]) {
@@ -465,6 +466,69 @@ function processData(data, nickname, conn, currentRoomName) {
 
         }
 
+    }
+    else if (data.match(/^##/)) {
+        num = 0;
+        var msgText = data;
+        var msgBackup = msgText;
+        msgText=msgText.replace(/#/g, ' ');
+        var tags=msgText.trim().split(/\s+/g);
+
+        //for ( i = 0; i < tags.length; i++) {console.log('tag:' + tags[i])};
+        var querystring = '';
+        var first=true;
+        for ( i = 0; i < tags.length; i++) {
+          if ((!tags[i].match(/\s+/))||(tags[i]=='')) {
+            if (first==true) {
+              querystring += tags[i];
+              first=false;
+            }
+            else {
+              querystring += '+' + tags[i];
+            } 
+          }
+        }
+        if (querystring=='') {
+            broadcast('\033[96m >' + nickname.value + '<\033[39m ' + data + '\n',
+                    false, nickname, currentRoomName);
+                    conn.write(
+                    '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>You<\033[39m '+ data +'\n');
+        }
+        else {
+            request('http://api.giphy.com/v1/stickers/search?q='+ querystring +'&limit=1&api_key=dc6zaTOxFJmzC', function (error, response, body) {
+              if (!error && response.statusCode == 200) {
+                body = JSON.parse(body);
+                try {
+                    var total=body.pagination.total_count;
+                    //console.log('total=' + total);
+                    var num = Math.floor(Math.random() * (total - 0 + 1)) + 0;
+                    //console.log(num);
+                    broadcast('\033[96m >' + nickname.value + '<\033[39m ' + num + data + '\n',
+                    false, nickname, currentRoomName);
+                    conn.write(
+                    '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>You<\033[39m '+ num + data +'\n');
+                }
+                catch (err) {
+                    broadcast('\033[96m >' + nickname.value + '<\033[39m ' + num + data + '\n',
+                    false, nickname, currentRoomName);
+                    conn.write(
+                    '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>You<\033[39m '+ num + data +'\n');
+                }
+              }
+              else {
+                broadcast('\033[96m >' + nickname.value + '<\033[39m ' + num + data + '\n',
+                false, nickname, currentRoomName);
+            conn.write(
+                    '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>You<\033[39m '+ num + data +'\n'
+                );
+
+              }
+            }) 
+
+        }
+
+        
+        
     } 
     else {
         // if we have the name and it is not a command, it can only be a message

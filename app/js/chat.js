@@ -19,33 +19,20 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
   ////
 
 
-  $http.get('http://api.giphy.com/v1/gifs/search?q=funny+cat&api_key=dc6zaTOxFJmzC').
-  success(function(data, status, headers, config) {
-    // this callback will be called asynchronously
-    // when the response is available
-    //console.log(data);
-  }).
-  error(function(data, status, headers, config) {
-    // called asynchronously if an error occurs
-    // or server returns response with an error status.
-  });
+  /*
+  
+  */
 
 
 
   ///
 
   $scope.hoverIn = function(msg){
-        //this.hoverGif = true;
-        //console.log('hover-on');
-        //console.log(msg);
         this.value=msg.gif;
     };
 
     $scope.hoverOut = function(msg){
-        //this.hoverGif = false;
         this.value=msg.still;
-        //console.log('hover-out');
-
     };
 
   $scope.textColor = function(hexcolor) {
@@ -71,7 +58,7 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
     else {
       var msgColor = $scope.genColor(name);
       var txtColor = $scope.textColor(msgColor);
-      $scope.messages.push({msgNum:0, sender:'System', text:'You cannot send empty messages. Please try again.', time:'', color:'#a45da9', txt: 'white'});
+      $scope.messages.push({msgNum:0, sender:'System', text:'You cannot send empty messages. Please try again.', time:'', color:'#a45da9', txt: 'white', gif:false});
     }
     
   };
@@ -120,14 +107,90 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
     var msgColor = $scope.genColor(name);
     var txtColor = $scope.textColor(msgColor);
 
-    if (msgText=="") {
-      $scope.messages.push({msgNum:0, sender:'System', text:'You cannot send empty messages. Please try again.', time:'', color:'#a45da9', txt: 'white'});
-    }
-    else if (msgText.match(/^##/))
-      {
-        var msgGif='<img src="http://media4.giphy.com/media/DFiwMapItOTh6/200.gif" class="img-responsive"></img>';
-        var msgStill='<img src="http://media4.giphy.com/media/DFiwMapItOTh6/200_s.gif" class="img-responsive-small img-thumbnail"></img>';
-        $scope.messages.push({msgNum:num, sender:name, text:{gif:msgGif, still:msgStill}, time:timeStamp, color:msgColor, txt: txtColor, gif:true});
+    //if (msgText=="") {
+    //  $scope.messages.push({msgNum:0, sender:'System', text:'You cannot send empty messages. Please try again.', time:'', color:'#a45da9', txt: 'white',gif:false});
+    //}
+    if (msgText.match(/^(\d)+##(\d|\w)+/)) {
+        var msgBackup = msgText;
+        msgText=msgText.replace(/#/g, ' ');
+        var tags=msgText.trim().split(/\s+/g);
+        var chosen=tags[0];
+        console.log(chosen);
+
+        //for ( i = 0; i < tags.length; i++) {console.log('tag:' + tags[i])};
+        var querystring = '';
+        var first=true;
+        for ( i = 1; i < tags.length; i++) {
+          if ((!tags[i].match(/\s+/))||(tags[i]=='')) {
+            if (first==true) {
+              querystring += tags[i];
+              first=false;
+            }
+            else {
+              querystring += '+' + tags[i];
+            } 
+          }
+        }
+        console.log(querystring);
+        if (querystring=="") {
+          //$scope.messages.push({msgNum:0, sender:'System', text:'You have to enter tags when sending stickers. Please try again.', time:'', color:'#a45da9', txt: 'white',gif:false});
+
+        $scope.messages.push({msgNum:num, sender:name, text:msgBackup, time:timeStamp, color:msgColor, txt: txtColor, gif:false});
+        }
+        else {
+
+          $http.get('http://api.giphy.com/v1/stickers/search?q='+ querystring +'&limit=1&api_key=dc6zaTOxFJmzC').
+          success(function(data, status, headers, config) {
+            try {
+              var total=data.pagination.total_count;
+              //console.log('total=' + total);
+              //var chosen = Math.floor(Math.random() * (total - 0 + 1)) + 0;
+
+              $http.get('http://api.giphy.com/v1/stickers/search?q='+ querystring +'&limit=1&offset='+chosen+'&api_key=dc6zaTOxFJmzC').
+              success(function(data, status, headers, config) {
+                // this callback will be called asynchronously
+                // when the response is available
+                
+                //console.log(data.data[0].images.fixed_height.url);
+                //console.log(data.data[0].images.fixed_height_still.url);
+                try {
+                  var msgGif='<img src="'+data.data[0].images.fixed_height.url+'" class="img-responsive-small img-thumbnail"></img>'+msgBackup;
+                  var msgStill='<img src="'+data.data[0].images.fixed_height_still.url+ '" class="img-responsive-small img-thumbnail"></img>'+msgBackup;
+                  $scope.messages.push({msgNum:num, sender:name, text:{gif:msgGif, still:msgStill}, time:timeStamp, color:msgColor, txt: txtColor, gif:true});
+                }
+                catch (err) {
+                  msgBackup+= ' :did not return any matches.';
+                  $scope.messages.push({msgNum:num, sender:name, text:msgBackup, time:timeStamp, color:msgColor, txt: txtColor, gif:false});
+                }
+                
+              }).
+              error(function(data, status, headers, config) {
+                // called asynchronously if an error occurs
+                // or server returns response with an error status.
+              });
+
+
+            }
+            catch (err) {
+              msgBackup+= ' :did not return any matches.';
+              $scope.messages.push({msgNum:num, sender:name, text:msgBackup, time:timeStamp, color:msgColor, txt: txtColor, gif:false});
+            }
+
+          }).
+          error(function(data, status, headers, config) {
+            // called asynchronously if an error occurs
+            // or server returns response with an error status.
+          });
+
+
+          
+
+        }
+
+        //console.log(querystring);
+        //var msgGif='<img src="http://media4.giphy.com/media/DFiwMapItOTh6/200.gif" class="img-responsive-small img-thumbnail"></img>';
+        //var msgStill='<img src="http://media4.giphy.com/media/DFiwMapItOTh6/200_s.gif" class="img-responsive-small img-thumbnail"></img>';
+        //$scope.messages.push({msgNum:num, sender:name, text:{gif:msgGif, still:msgStill}, time:timeStamp, color:msgColor, txt: txtColor, gif:true});
       }
     else {
       $scope.messages.push({msgNum:num, sender:name, text:msgText, time:timeStamp, color:msgColor, txt: txtColor, gif:false});
