@@ -41,13 +41,19 @@
         <div class="container-fluid">
           <!-- Brand and toggle get grouped for better mobile display -->
           <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <button class="navbar-toggle" type="button" ng-click="incrHeight(false)" title="Chat Size">
               <span class="sr-only">Toggle navigation</span>
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="#">Brand</a>
+             <button class="navbar-toggle" type="button" ng-click="incrHeight(false)" title="Chat Size">
+              <span class="glyphicon glyphicon-minus"></span>
+            </button>  
+            <button class="navbar-toggle" type="button" ng-click="incrHeight(true)" title="Chat Size">
+              <span class="glyphicon glyphicon-plus"></span>
+            </button>    
+            <a class="navbar-brand" href="#"><img alt="pikChat" src="img/piKchat.png" style="max-width:100px; margin-top: -14px;"></a>
           </div>
 
           <!-- Collect the nav links, forms, and other content for toggling -->
@@ -55,14 +61,15 @@
             <ul class="nav navbar-nav">
               <li class="active"><a href="#">Link</a></li>
               <li><a href="#">Link</a></li>
+              <li><button class="btn btn-default navbar-btn" ng-click="isOptionsCollapsed = !isOptionsCollapsed">Options</button></li>
             </ul>
             <form class="navbar-form navbar-left" role="search">
               <div class="form-group">
-                <input type="text" class="form-control" placeholder="Search">
+                <input type="text" class="form-control" placeholder="Filter">
               </div>
             </form>
             <ul class="nav navbar-nav navbar-right">
-              <li class="btn-group navbar-text">
+              <li class="btn-group navbar-btn">
                 <button type="button" class="btn btn-default" ng-click="incrHeight(true)" title="Chat Size">+</button>
                 <button type="button" class="btn btn-default" ng-click="incrHeight(false)" title="Chat Size">-</button>
               </li>
@@ -72,6 +79,13 @@
       </nav>
 
       <div class="container">
+        <div collapse="isOptionsCollapsed">
+          <div class="well well-lg">Some content</div> 
+        </div>
+
+        <div collapse="isNavbarCollapsed">
+          <div class="well well-lg">Some content</div> 
+        </div>
 
 
         <div class="row">
@@ -125,6 +139,7 @@
     <!--<script src="js/bootstrap.min.js"></script>-->
     <script src="js/angular.min.js"></script>
     <script src="js/angular-animate.min.js"></script>
+    <script src="js/ui-bootstrap-tpls-0.11.2.min.js"></script>
     <script src="js/sockjs-0.3.4.min.js"></script>
     <script src="js/loading-bar.min.js"></script>
     <script src="js/chat.js"></script>

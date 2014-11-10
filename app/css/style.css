@@ -71,5 +71,7 @@
 } 
 
 .animate.ng-leave {
-  
+
 }
+
+.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }

@@ -2,13 +2,16 @@
 
 var sock = new SockJS('http://localhost:3000/chat');
 
-var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanitize', 'filters','angular-loading-bar', 'ngAnimate'])
+var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanitize', 'filters','angular-loading-bar', 'ngAnimate', 'ui.bootstrap'])
 .controller('ChatCtrl', ['$scope', 'truncate', '$sce','$http', function($scope, truncate, $sce, $http, $timeout){
   $scope.valHeight="65vh";
   $scope.messages = [];
   var num=1;
   var ignored=[];
   $scope.msgLimit= 150;
+
+  $scope.isOptionsCollapsed = true;
+  $scope.isNavbarCollapsed = true;
 
   $scope.valBg='white';
   $scope.valBorder='black';
