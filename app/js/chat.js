@@ -1,6 +1,6 @@
 
 
-var sock = new SockJS('http://localhost:3000/chat');
+var sock = new SockJS('http://pikchat.me:3000/chat');
 
 var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanitize', 'filters','angular-loading-bar', 'ngAnimate', 'ui.bootstrap'])
 .controller('ChatCtrl', ['$scope', 'truncate', '$sce','$http', function($scope, truncate, $sce, $http, $timeout){
