@@ -19,6 +19,9 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
   $scope.valBorder='black';
   $scope.valColor='black';
 
+  $scope.lowQualityGif = false;
+  $scope.expandGif = false;
+
   var apiKey='dc6zaTOxFJmzC';
 
   $scope.hoverIn = function(msg){
@@ -87,6 +90,19 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
     }
     else current = current - 4;
     $scope.valHeight=current + "vh";
+  }
+
+  $scope.msgLimitChange = function(type) {
+    if (type=='minus') {
+      $scope.msgLimit -=25;
+      if ($scope.msgLimit<0) $scope.msgLimit=0;
+    }
+    if (type=='plus') {
+      $scope.msgLimit +=25;
+    }
+    if ($scope.msgLimit==0) $scope.limitEnabled = false;
+    else $scope.limitEnabled = true;
+    
   }
 
   sock.onmessage = function(e) {
@@ -167,6 +183,7 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
           }
           else {
 
+
             $http.get('http://api.giphy.com/v1/'+searchType+'/search?q='+ querystring +'&limit=1&api_key='+apiKey).
             success(function(data, status, headers, config) {
               try {
@@ -182,9 +199,29 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
                   //console.log(data.data[0].images.fixed_height.url);
                   //console.log(data.data[0].images.fixed_height_still.url);
                   try {
-                    var msgGif='<img src="'+data.data[0].images.fixed_height.url+'" class="img-responsive" title='+msgBackup+'></img>';
+                    if ($scope.lowQualityGif==true) {
+                      if ($scope.expandGif==true) {
+                        var msgGif='<img src="'+data.data[0].images.fixed_height_downsampled.url+'" class="img-responsive" title='+msgBackup+'></img>';
+                      }
+                      else {
+                        var msgGif='<img src="'+data.data[0].images.fixed_height_downsampled.url+'" class="img-responsive-small" title='+msgBackup+'></img>';
+                      }
+                     
+                    }
+                    else {
+                      if ($scope.expandGif==true) {
+                        var msgGif='<img src="'+data.data[0].images.fixed_height.url+'" class="img-responsive" title='+msgBackup+'></img>';
+                      }
+                      else {
+                        var msgGif='<img src="'+data.data[0].images.fixed_height.url+'" class="img-responsive-small" title='+msgBackup+'></img>';
+                      }
+                    }
+                    
                     var msgStill='<img src="'+data.data[0].images.fixed_height_still.url+ '" class="img-responsive-small" title='+msgBackup+'></img>';
                     $scope.messages.push({msgNum:num, sender:name, text:{gif:msgGif, still:msgStill}, time:timeStamp, color:msgColor, txt: txtColor, gif:true});
+                    
+
+                    
                   }
                   catch (err) {
                     msgBackup+= ' :did not return any matches.';

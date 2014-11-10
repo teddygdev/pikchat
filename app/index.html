@@ -66,6 +66,12 @@
                 <input type="text" class="form-control" placeholder="Filter" ng-model="searchText">
                 <button class="btn btn-default" type="button" ng-click="searchText=''">Clear</button>
               </span>
+              </form>
+              <form class="navbar-form navbar-left visible-lg" role="search">
+              <span class="input-group-btn form-group">
+                <input type="text" class="form-control" placeholder="Another Filter" ng-model="searchText2">
+                <button class="btn btn-default" type="button" ng-click="searchText2=''">Clear</button>
+              </span>
             </form>
             <ul class="nav navbar-nav navbar-right">
               <li class="btn-group navbar-btn">
@@ -82,7 +88,25 @@
       <div class="container">
         <div collapse="isOptionsCollapsed">
           <button class="btn btn-default btn-block visible-xs" ng-click="isOptionsCollapsed = !isOptionsCollapsed">Close Options</button>
-          <div class="well well-lg">Some content</div> 
+          <div class="well well-lg">
+            <h3 class="text-center">Options</h3>
+            <div class="row">
+              <div class="col-md-5">
+                <button class="btn btn-primary" type="button">
+                  Message History Limit <span class="badge">{{msgLimit}}</span>
+                </button>
+                <button class="btn btn-primary" type="button" ng-click="msgLimitChange('minus')">-25</button>
+                <button class="btn btn-primary" type="button" ng-click="msgLimitChange('plus')">+25</button>
+                <b>0 = unlimited</b>
+              </div>
+              <div class="col-md-4">
+                <input type="checkbox" ng-model="expandGif"> Expand GIFs on hover (not other way) <br>(affects GIFs received after changing the option)
+              </div>
+              <div class="col-md-3">
+                <input type="checkbox" ng-model="lowQualityGif"> Low Quality (Mobile Friendly) GIFs <br>(affects GIFs received after changing the option)
+              </div>
+            </div>
+          </div> 
         </div>
         
 
@@ -94,6 +118,9 @@
               <span class="input-group-btn">
                 <input type="text" class="form-control" placeholder="Filter" ng-model="searchText">
                 <button class="btn btn-default btn-block" type="button" ng-click="searchText=''">Clear</button>
+                <br>
+                <input type="text" class="form-control" placeholder="Filter" ng-model="searchText2">
+                <button class="btn btn-default btn-block" type="button" ng-click="searchText2=''">Clear</button>
               </span>
             </form>
             <hr>
@@ -116,12 +143,12 @@
                   <div class="panel-body">
 
                     
-                      <div ng-repeat="msg in messages | filter:searchText" class="animate">
+                      <div ng-repeat="msg in messages | filter:searchText | filter:searchText2" class="animate">
                       
                         <div class="msg msg-info" style="background-color:{{msg.color}}; color:{{msg.txt}}; border-color:black">
                           <strong>{{msg.sender}}</strong>
                           <span class="pull-right">
-                            <button ng-if="(msg.sender!='System')&&(msg.sender!='You')&&(msg.sender!='PIKCHAT')&&(msg.sender!='#whisper#')&&(msg.sender!='')" type="button" 
+                            <button ng-if="(msg.sender!='System')&&(msg.sender!='You')&&(msg.sender!='PIKCHAT')&&(msg.sender!='#whisper#')&&(msg.sender!='')&&(msg.sender!='Random Cat GIF')" type="button" 
                             class="btn btn-default btn-xs" ng-init="text = 'Ignore'" ng-click="ignore(msg.sender)">
                               <span class="glyphicon glyphicon-ban-circle"></span> {{text}}
                             </button>&nbsp{{msg.time}}
