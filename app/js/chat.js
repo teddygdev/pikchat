@@ -22,6 +22,17 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
   $scope.lowQualityGif = false;
   $scope.expandGif = false;
 
+  $scope.hideGif = false;
+  $scope.hideBroadcast = false;
+  $scope.hideWhisper = false;
+  $scope.hideYou = false;
+
+  $scope.placeHolderText="Enter text here";
+  $scope.sessionName='';
+
+
+
+
   var apiKey='dc6zaTOxFJmzC';
 
   $scope.hoverIn = function(msg){
@@ -61,6 +72,10 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
   $scope.genColor = function(str) {
     return '#' + md5(str).slice(0, 6);
 
+  };
+
+  $scope.clearMsgs = function(){
+      while ($scope.messages.length) { $scope.messages.pop(); }
   };
 
 
@@ -106,7 +121,6 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
   }
 
   sock.onmessage = function(e) {
-    //console.log(e.data);
 
     e.data = e.data.replace(/\[90m|\[91m|\[92m|\[93m|\[94m|\[95m|\[96m|\[97m|\[39m/g, '');
     //e.data = e.data.replace(/\n/g, '<br>');
@@ -137,6 +151,22 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
     msgText = $sce.trustAsHtml(truncate(msgText, ''));
     msgText = msgText.toString();
     msgText = msgText.trim();
+
+    //console.log(msgText);
+    if ((name=='System')&&(msgText.match(/You JOINED the server /))) {
+      var pos1 = msgText.indexOf('user');
+      var pos2 = msgText.indexOf('You can get');
+      $scope.sessionName=msgText.substring(pos1 + 6, pos2 - 2);
+      $scope.placeHolderText='You are logged in as ' + $scope.sessionName +'. You are in room "lobby".';
+    }
+
+    if ((name=='System')&&(msgText.match(/<< You are now in room:/))) {
+      var pos1 = msgText.indexOf('"');
+      var pos2 = msgText.lastIndexOf('"');
+      $scope.currentRoom=msgText.substring(pos1, pos2+1);
+      $scope.placeHolderText='You are logged in as ' + $scope.sessionName +'. You are in room '+ $scope.currentRoom +'.';
+    }
+
     var msgColor = $scope.genColor(name);
     var txtColor = $scope.textColor(msgColor);
 
@@ -147,6 +177,9 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
     for (var i=0; i<ignored.length; i++) {
       if (ignored[i]==name) send=false;
     }
+    if (($scope.hideBroadcast==true)&&(name=='PIKCHAT')) send=false;
+    if (($scope.hideYou==true)&&(name=='You')) send=false;
+    if (($scope.hideWhisper==true)&&(name=='#whisper#')) send=false;
 
     if (send==true) {
       if (msgText.match(/^(\d)+###?(\d|\w)+/)) {
@@ -159,7 +192,6 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
           msgText = msgText.replace(/\W/g, ' ')
           var tags=msgText.trim().split(/\s+/g);
           var chosen=tags[0];
-          console.log(chosen);
 
           //for ( i = 0; i < tags.length; i++) {console.log('tag:' + tags[i])};
           var querystring = '';
@@ -175,8 +207,7 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
               } 
             }
           }
-          console.log(querystring);
-          if (querystring=="") {
+          if ((querystring=="")||($scope.hideGif==true)) {
             //$scope.messages.push({msgNum:0, sender:'System', text:'You have to enter tags when sending stickers. Please try again.', time:'', color:'#a45da9', txt: 'white',gif:false});
 
           $scope.messages.push({msgNum:num, sender:name, text:msgBackup, time:timeStamp, color:msgColor, txt: txtColor, gif:false});
@@ -201,23 +232,23 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
                   try {
                     if ($scope.lowQualityGif==true) {
                       if ($scope.expandGif==true) {
-                        var msgGif='<img src="'+data.data[0].images.fixed_height_downsampled.url+'" class="img-responsive" title='+msgBackup+'></img>';
+                        var msgGif='<img src="'+data.data[0].images.fixed_height_downsampled.url+'" class="img-responsive" title="'+msgBackup+'"></img>';
                       }
                       else {
-                        var msgGif='<img src="'+data.data[0].images.fixed_height_downsampled.url+'" class="img-responsive-small" title='+msgBackup+'></img>';
+                        var msgGif='<img src="'+data.data[0].images.fixed_height_downsampled.url+'" class="img-responsive-small" title="'+msgBackup+'"></img>';
                       }
                      
                     }
                     else {
                       if ($scope.expandGif==true) {
-                        var msgGif='<img src="'+data.data[0].images.fixed_height.url+'" class="img-responsive" title='+msgBackup+'></img>';
+                        var msgGif='<img src="'+data.data[0].images.fixed_height.url+'" class="img-responsive" title="'+msgBackup+'"></img>';
                       }
                       else {
-                        var msgGif='<img src="'+data.data[0].images.fixed_height.url+'" class="img-responsive-small" title='+msgBackup+'></img>';
+                        var msgGif='<img src="'+data.data[0].images.fixed_height.url+'" class="img-responsive-small" title="'+msgBackup+'"></img>';
                       }
                     }
                     
-                    var msgStill='<img src="'+data.data[0].images.fixed_height_still.url+ '" class="img-responsive-small" title='+msgBackup+'></img>';
+                    var msgStill='<img src="'+data.data[0].images.fixed_height_still.url+ '" class="img-responsive-small" title="'+msgBackup+'"></img>';
                     $scope.messages.push({msgNum:num, sender:name, text:{gif:msgGif, still:msgStill}, time:timeStamp, color:msgColor, txt: txtColor, gif:true});
                     
 

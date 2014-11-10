@@ -43,7 +43,7 @@ chat.on('connection', function(conn) {
     var last_check = {'value':Date.now()}; // floating-point, e.g. usec accuracy. Unit: seconds
     var spam={'value':0};
 
-    conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >Random Cat GIF< ' + (Math.floor((Math.random() * 8500) + 1)) +'###cat');
+    conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >Random Cat GIF< ' + (Math.floor((Math.random() * 15000) + 1)) +'###cat');
     conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' +
         'Welcome to \033[94mpi\033[93mK\033[92mchat \033[91ms\033[92me\033[93mr\033[94mv\033[95me\033[96mr\033[39m! ' +
         'You are automatically placed in the lobby. Messages by System are only visible to you.'+
@@ -475,7 +475,6 @@ function processData(data, nickname, conn, currentRoomName, type) {
         if (data.match(/^###/)) {
             searchType='gifs';
         }
-        console.log(searchType);
         num = 0;
         var msgText = data;
         var msgBackup = msgText;
