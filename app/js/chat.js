@@ -175,8 +175,8 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
                   //console.log(data.data[0].images.fixed_height.url);
                   //console.log(data.data[0].images.fixed_height_still.url);
                   try {
-                    var msgGif='<img src="'+data.data[0].images.fixed_height.url+'" class="img-responsive" spinner-on-load></img>'+msgBackup;
-                    var msgStill='<img src="'+data.data[0].images.fixed_height_still.url+ '" class="img-responsive-small" spinner-on-load></img>'+msgBackup;
+                    var msgGif='<img src="'+data.data[0].images.fixed_height.url+'" class="img-responsive" title='+msgBackup+'></img>';
+                    var msgStill='<img src="'+data.data[0].images.fixed_height_still.url+ '" class="img-responsive-small" title='+msgBackup+'></img>';
                     $scope.messages.push({msgNum:num, sender:name, text:{gif:msgGif, still:msgStill}, time:timeStamp, color:msgColor, txt: txtColor, gif:true});
                   }
                   catch (err) {
