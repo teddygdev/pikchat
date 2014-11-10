@@ -59,20 +59,21 @@
           <!-- Collect the nav links, forms, and other content for toggling -->
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
-              <li class="active"><a href="#">Link</a></li>
-              <li><a href="#">Link</a></li>
-              <li><button class="btn btn-default navbar-btn" ng-click="isOptionsCollapsed = !isOptionsCollapsed">Options</button></li>
+              <li class="active"><a href="/">Rejoin</a></li>
             </ul>
             <form class="navbar-form navbar-left" role="search">
-              <div class="form-group">
-                <input type="text" class="form-control" placeholder="Filter">
-              </div>
+              <span class="input-group-btn form-group">
+                <input type="text" class="form-control" placeholder="Filter" ng-model="searchText">
+                <button class="btn btn-default" type="button" ng-click="searchText=''">Clear</button>
+              </span>
             </form>
             <ul class="nav navbar-nav navbar-right">
               <li class="btn-group navbar-btn">
                 <button type="button" class="btn btn-default" ng-click="incrHeight(true)" title="Chat Size">+</button>
                 <button type="button" class="btn btn-default" ng-click="incrHeight(false)" title="Chat Size">-</button>
               </li>
+              <li><p class="navbar-text"></p><button class="btn btn-default navbar-btn" ng-click="isOptionsCollapsed = !isOptionsCollapsed">Options</button></li>
+              <li><p class="navbar-text"></p><button class="btn btn-default navbar-btn" ng-click="isHelpCollapsed = !isHelpCollapsed">Help</button></li>
             </ul>
           </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->
@@ -87,6 +88,9 @@
           <div class="well well-lg">Some content</div> 
         </div>
 
+        <div collapse="isHelpCollapsed">
+          <div class="well well-lg">Some content</div> 
+        </div>
 
         <div class="row">
           <div class="col-md-12">
@@ -96,12 +100,12 @@
                   <div class="panel-body">
 
                     
-                      <div ng-repeat="msg in messages track by $index" class="animate">
+                      <div ng-repeat="msg in messages | filter:searchText" class="animate">
                       
                         <div class="msg msg-info" style="background-color:{{msg.color}}; color:{{msg.txt}}; border-color:black">
                           <strong>{{msg.sender}}</strong>
                           <span class="pull-right">
-                            <button ng-if="(msg.sender!='System')&&(msg.sender!='You')&&(msg.sender!='PIKCHAT')&&(msg.sender!='#whisper#')" type="button" 
+                            <button ng-if="(msg.sender!='System')&&(msg.sender!='You')&&(msg.sender!='PIKCHAT')&&(msg.sender!='#whisper#')&&(msg.sender!='')" type="button" 
                             class="btn btn-default btn-xs" ng-init="text = 'Ignore'" ng-click="ignore(msg.sender)">
                               <span class="glyphicon glyphicon-ban-circle"></span> {{text}}
                             </button>&nbsp{{msg.time}}

@@ -9,9 +9,11 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
   var num=1;
   var ignored=[];
   $scope.msgLimit= 150;
+  $scope.limitEnabled = true;
 
   $scope.isOptionsCollapsed = true;
   $scope.isNavbarCollapsed = true;
+  $scope.isHelpCollapsed = true;
 
   $scope.valBg='white';
   $scope.valBorder='black';
@@ -69,9 +71,11 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
       var txtColor = $scope.textColor(msgColor);
       $scope.messages.push({msgNum:0, sender:'System', text:'You cannot send empty messages. Please try again.', time:'', color:'#a45da9', txt: 'white', gif:false});
     }
-    if ($scope.messages.length>$scope.msgLimit) {
-      for (var i=0; i<$scope.messages.length-$scope.msgLimit; i++) {
-        $scope.messages.shift();
+    if ($scope.limitEnabled==true) {
+      if ($scope.messages.length>$scope.msgLimit) {
+        for (var i=0; i < $scope.messages.length - $scope.msgLimit; i++) {
+          $scope.messages.shift();
+        }
       }
     }
   };

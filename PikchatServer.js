@@ -277,6 +277,7 @@ function onData (nickname, rate, per, allowance, last_check, spam, currentRoomNa
                     "broadcast") || (data.toLowerCase() ==
                     "whisper") || (data.toLowerCase() ==
                     "pikchat") || (data.toLowerCase() ==
+                    "undefined") || (data.toLowerCase() ==
                     "system") || (data.toLowerCase() ==
                     "you")) {
                 conn.write(
