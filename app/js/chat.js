@@ -78,6 +78,11 @@ var app = angular.module('pikchatApp', ['luegg.directives','dbaq.emoji','ngSanit
       while ($scope.messages.length) { $scope.messages.pop(); }
   };
 
+  $scope.resetIgnore = function(){
+      while ($scope.ignored.length) { $scope.ignored.pop(); }
+      $scope.messages.push({msgNum:0, sender:'System', text:'You are no longer ignoring anyone.', time:'', color:'#a45da9', txt: 'white', gif:false});
+  };
+
 
   $scope.sendMessage = function() {
     if (($scope.messageText != undefined)&&($scope.messageText.trim() != "")) {

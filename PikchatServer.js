@@ -43,7 +43,7 @@ chat.on('connection', function(conn) {
     var last_check = {'value':Date.now()}; // floating-point, e.g. usec accuracy. Unit: seconds
     var spam={'value':0};
 
-    conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >Random Cat GIF< ' + (Math.floor((Math.random() * 15000) + 1)) +'###cat');
+    //conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >Random Cat GIF< ' + (Math.floor((Math.random() * 15000) + 1)) +'###cat');
     conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' +
         'Welcome to \033[94mpi\033[93mK\033[92mchat \033[91ms\033[92me\033[93mr\033[94mv\033[95me\033[96mr\033[39m! ' +
         'You are automatically placed in the lobby. Messages by System are only visible to you.'+
@@ -373,8 +373,18 @@ function processData(data, nickname, conn, currentRoomName, type) {
             '\n \033[93mFAQ:\033[39m' +
             '\n Q: How do I change my name?' +
             '\n A: You have to exit the server and rejoin to get a new name.' +
+            '\n Q: Why is the time off by a few hours?' +
+            '\n A: pikChat uses server time for everybody, for now at least. Server is in London, so UK time.' +
             '\n Q: What is the message rate limit?' +
             '\n A: You can send 5 messages/commands every 7 seconds. If you spam a lot you will get less messages per 7 seconds until you calm down.' +
+            '\n Q: What are all these hashtags?' +
+            '\n A: The browser version of the chat supports in-message GIFS. \#\#[tag] returns a sticker. \#\#\#[tag] returns a GIF. A number in front indicates that a specific' +
+            'image matching that tag will be shown' +
+            '\n Q: Why am I getting a >You< message when I try sending a random GIF/sticker?' +
+            '\n A: There are many images tagged with the same tag. The pikChat server returns a random one of those and people need to get the same number to see the the same image.'+
+            'This is how you send the same GIF/sticker to everyone.' +
+            '\n Q: What extra features does the browser version have?' +
+            '\n A: You can send GIFS/stickers, ignore certain people, hide specific types of messages, have real-time filtering. Overall a much posher way of enjoying piKchat.' +
             '\n Q: Why did my favorite room disapper?' +
             '\n A: Empty rooms are deleted every 5 minutes. You can just create it again. Remember to join it!\n');
 

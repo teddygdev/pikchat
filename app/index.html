@@ -4,7 +4,8 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>piKchat</title>
+    <title>piKchat.me</title>
+    <link rel="icon" type="image/gif" href="img/favicon.gif" />
 
     <!-- Bootstrap -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -132,6 +133,11 @@
                   Clear Message History
                 </button>
               </div>
+              <div class="col-md-4">
+                <button class="btn btn-primary" type="button" ng-click="resetIgnore()">
+                  Reset List of Ignored Users
+                </button>
+              </div>
             </div>
             <hr>
             <button class="btn btn-default btn-block visible-xs" ng-click="isOptionsCollapsed = !isOptionsCollapsed">Close Options</button>
@@ -161,7 +167,52 @@
 
         <div ng-cloak collapse="isHelpCollapsed">
           <button class="btn btn-default btn-block visible-xs" ng-click="isHelpCollapsed = !isHelpCollapsed">Close Help</button>
-          <div class="well well-lg">Some content
+          <div class="well well-lg">
+          <h4>Browser-only Help</h4>
+          <p>The browser version of piKchat has a bit more features than the telnet version. That's why it is more reasonable to explain those features here only.</p>
+          <p>The most notable feature is ability to send GIFs and stickers. All you need is a tag and piKchat will take care of the rest.</p>
+          <p><b>##[tag] [optional tag]</b> - Posts a random sticker (transparent background) that fits the tag. e.g: ##hello | ##ryan gosling</p>
+          <p><b>###[tag] [optional tag]</b> - Posts a random GIF (bigger database) that fits the tag. e.g: ###hello | ###ryan gosling</p>
+          <p>If you happen to really like a specific GIF/Sticker, you can hover over it and you will see the exact string that posts that exact GIF/Sticker<p>
+          <p>Example: you post a really cool cat GIF by sending "<b>###cat</b>". When you hover over the GIF you get the title "<b>6969###cat</b>" Everytime you send "<b>6969###cat</b>"
+          the exact same GIF you like so much will be posted.</p>
+          <p>You can also use EMOJI! <a href="http://www.emoji-cheat-sheet.com/" target="_blank">Emoji Cheat Sheet</a>(opens in new tab)</p>
+          <p>Depending on your internet connection GIFS/Stickers might be too taxing for your connection. In the options you can enable the option of lower-quality GIFS. If the GIFs are still loading
+          not quickly enough you can disable them completely from the options. That way you will get just the string that creates the specific GIF/Sticker.</p>
+          <p>By hovering on the GIF/Sticker you enable it's animation. It is actually activated by hovering on the message.</p>
+          <p>By default, the GIFs/Stickers are half as big as the originals. This is to accommodate for different screen sizes. If you would like to see them in full size, you have to enable the option
+          from the options screen.</p>
+          <p>You might have noticed that the chat screen doesn't fill up the whole browser window or that it takes up more space than the browser windows allows. You can use the plus and minus buttons
+          on the navbar to adjust the height of the chat window.</p>
+          <p>Some of the messages shown on the screen, like when somebody joins or leaves a room, might be annoying to you. You can hide those from the options screen. Note: If you decide to hide whispers,
+          you will not be able to see any of the whispers you receive, but you will be able to send whispers.</p>
+          <p>There is a limit to how many messages can be shown, a.k.a message history. That means that once the messages in the chat window go above the specified limit (default: 150), the older ones
+          will be deleted one by one until only the specified number of messages are shown. This is to alleviate resource usage. If you feel brave or know what you are doing, you can increase the limit
+          from the options window. Keep in mind that messages are deleted only after you send something, so you will not miss that important message you were waiting for while you were away. If you want
+          unlimited message history just set the limit to 0, however you might experience slow downs after some time.</p>
+          <p>You can always ignore a certain user. Just click on the little ignore button next to his or her name. If you misclicked you can just click on the undo button that took the place of the ignore
+          button. You will see a system message with the effects of your actions, just to make sure there are no misunderstandings. You can always reset all the ignores from the options menu</p>
+          <p>In the navbar you will find one or more filters, depending on your screen size. It's a realtime filter and you can filter pretty much anything. Want to find all the cat gifs posted, filter
+          for "##cat". Want to find all messages by a certain user? Filter by his name. Want to find messages that include your name in them? Filter your name. Go crazy.</p>
+
+          <h4>Text Commands:</h4>
+          <p>/help - Show the help screen with commands and FAQ</p>
+          <p>/quit - Disconnects from the chat server and exits</p>
+          <p>/leave - Leaves current room and goes back to lobby</p>
+          <p>/rooms - Shows a list of all possible rooms and people in them</p>
+          <p>/create [room name] - Create a nwe room for people to join</p>
+          <p>/join [roomname] - Joins one of the existing rooms</p>
+          <p>/users - Shows a list of all connected people to the current room</p>
+          <p>/allusers - Shows a list of all connected people to server</p>
+          <p>/whisper [receiver] [message] - Send a private message. Can be any user in any room</p>
+          <p>/w [receiver] [message] - Shorter version of whisper</p>
+
+          <p><b>Version: 0.1.0</b> <a href="https://github.com/teddygdev/pikchat" target="_blank">piKchat on GitHub</a>(opens in new tab)</p>
+
+          
+
+
+
             <button class="btn btn-default btn-block visible-xs" ng-click="isHelpCollapsed = !isHelpCollapsed">Close Help</button> 
           </div>
         </div>
@@ -198,7 +249,7 @@
             <div class="row">
               <div class="col-md-12">
                 <form ng-submit="sendMessage()">
-                  <div class="input-group">
+                  <div ng-cloak class="input-group">
                      <textarea class="form-control" enter-submit="sendMessage()" ng-model="messageText" rows="2" style="resize:none" placeholder={{placeHolderText}}></textarea> 
                      <span class="input-group-addon"><input type="submit" class="btn btn-default" value="Send"></input></span>
                   </div>

@@ -1,6 +1,6 @@
 {
   "name": "pikchat",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "TCP based Chat Server + Web Client with emphasis on stickers",
   "main": "index.js",
   "scripts": {
@@ -20,11 +20,11 @@
     "stickers"
   ],
   "dependencies": {
-    "ejs": "latest",
-    "express": "latest",
-    "moment": "latest",
-    "request": "^2.47.0",
-    "sockjs": "latest"
+    "ejs": "1.0.0",
+    "express": "4.10.2",
+    "moment": "2.8.3",
+    "request": "2.47.0",
+    "sockjs": "0.3.9"
   },
   "author": "Teddy G",
   "license": "ISC",
