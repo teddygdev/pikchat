@@ -1,5 +1,6 @@
 # Testing Procedure Logic
 To be implemented as automatic tests
+Repurposed to random snippet file
 
 ## Terminal Color Chart
 //color refernce
@@ -11,7 +12,7 @@ To be implemented as automatic tests
 +'\n 95 \033[95mcolor\033[39m'    //purple
 +'\n 96 \033[96mcolor\033[39m'    //cyan
 +'\n 97 \033[97mcolor\033[39m'    //white
-+'\n 100 \033[100mcolor\033[49m'  //black
++'\n 100 \033[100mcolor\033[49m'  //black //backogrunds
 +'\n 101 \033[101mcolor\033[49m'  //red
 +'\n 102 \033[102mcolor\033[49m'  //green
 +'\n 103 \033[103mcolor\033[49m'  //yellow
@@ -21,9 +22,19 @@ To be implemented as automatic tests
 +'\n 107 \033[107mcolor\033[49m'  //white
 
 
-## TCP Part
+## Eventually change time zone
 
-### Name
-1. node expect input name
-2. Press enter for blank name -> You name cannot be a blank space. Try again
-3. Enter some name -> you can get a list of commands by typing "/help"
+var dateObj = moment("Nov 07 21:18:24", "MMM DD HH:mm:ss").toDate();
+dateObj = moment().add(7, 'days').format('MMM DD HH:mm:ss');
+console.log(dateObj);
+
+##tcp timeout disconnect
+//this timeout is pretty much useless. when a message is broadcasted,
+//all receivers have their timeout reset. 
+//maybe for preventing server being full with no one writing for a day?
+//will have to look into it further
+/*conn.setTimeout(86400000, function(){
+      conn.write('\n > You timed-out after 24 hours. Disconnecting!\n');
+      conn.destroy();
+  });
+*/

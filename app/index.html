@@ -7,7 +7,6 @@
     <title>piKchat.me</title>
     <link rel="icon" type="image/gif" href="img/favicon.gif" />
 
-    <!-- Bootstrap -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/loading-bar.min.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
@@ -24,20 +23,6 @@
 
   </head>
   <body>
-    <!--
-    <div ng-controller="ChatCtrl">
-    <h1>pikChat Web Prototype</h1>
-    <ul>
-      <li ng-repeat="message in messages track by $index">{{message}}</li>
-    </ul>
-
-    <form ng-submit="sendMessage()">
-      <input type="text" ng-model="messageText" placeholder="Type your message here" />
-      <input type="submit" value="Send" />
-    </form>
-  </div>
-  -->
-   
     <div ng-controller="ChatCtrl">
       <nav class="navbar navbar-default" role="navigation">
         <div class="container-fluid">
@@ -209,10 +194,6 @@
 
           <p><b>Version: 0.1.0</b> <a href="https://github.com/teddygdev/pikchat" target="_blank">piKchat on GitHub</a>(opens in new tab)</p>
 
-          
-
-
-
             <button class="btn btn-default btn-block visible-xs" ng-click="isHelpCollapsed = !isHelpCollapsed">Close Help</button> 
           </div>
         </div>
@@ -223,10 +204,7 @@
               <div class="col-md-12">
                 <div ng-style="{height: valHeight}" class="chatbox" scroll-glue>
                   <div ng-cloak class="panel-body">
-
-                    
                       <div ng-repeat="msg in messages | filter:searchText | filter:searchText2" class="animate">
-                      
                         <div class="msg msg-info" style="background-color:{{msg.color}}; color:{{msg.txt}}; border-color:black">
                           <strong>{{msg.sender}}</strong>
                           <span class="pull-right">
@@ -261,11 +239,7 @@
 
       </div>
     </div>
-
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <!--<script src="js/bootstrap.min.js"></script>-->
     <script src="js/angular.min.js"></script>
     <script src="js/angular-animate.min.js"></script>
     <script src="js/ui-bootstrap-tpls-0.11.2.min.js"></script>
@@ -276,7 +250,6 @@
     <script src="js/md5.js"></script>
     <script src="js/angular-sanitize.min.js"></script>
     <script src="js/emoji.min.js"></script>
-
     
     <link href="css/emoji.min.css" rel="stylesheet">
   </body>

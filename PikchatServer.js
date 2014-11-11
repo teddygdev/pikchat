@@ -16,6 +16,8 @@ var rooms = [{0: {name: 'lobby',value: {}}},
 var roomNumbers = 5;
 //counter needed for generating more rooms
 
+
+//giphy api key
 var apiKey='dc6zaTOxFJmzC';
 
 ///////http part
@@ -31,63 +33,49 @@ var sockjs = require('sockjs');
 
 var connections = [];
 
-var chat = sockjs.createServer();
+var chat = sockjs.createServer(); //create http socket
 chat.on('connection', function(conn) {
     count++;
     console.log("[" + moment().format("MMM DD HH:mm:ss") + "] \033[92mUsers connected: " + count + "\033[39m");
     var nickname={'value':undefined};
-    //console.log(nickname.value);
     var rate = {'value':5000}; // unit: messages
-    var per  = {'value':7000}; // unit: seconds
+    var per  = {'value':7000}; // unit: seconds -> 5 msg / 7 sec
     var allowance = {'value':rate.value}; // unit: messages
-    var last_check = {'value':Date.now()}; // floating-point, e.g. usec accuracy. Unit: seconds
-    var spam={'value':0};
+    var last_check = {'value':Date.now()}; 
+    var spam={'value':0}; //increment everytime user hits msg limit
 
     //conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >Random Cat GIF< ' + (Math.floor((Math.random() * 15000) + 1)) +'###cat');
+    //removed due to considerations for mobile users. War pretty cool though, everytime you login, a random cat gif
     conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' +
         'Welcome to \033[94mpi\033[93mK\033[92mchat \033[91ms\033[92me\033[93mr\033[94mv\033[95me\033[96mr\033[39m! ' +
         'You are automatically placed in the lobby. Messages by System are only visible to you.'+
         '\n\nPlease write your name in the text box below and press enter! Accepted characters: [ A-Z ][ a-z ][ 0-9 ][ _ ]');
 
-    var currentRoomName = {'value': 'lobby'}; //for keeping track in which room we are
+    var currentRoomName = {'value': 'lobby'}; //for keeping track in which room we are, default to lobby
 
-    conn.on('data', function(data) {
+    conn.on('data', function(data) { //on input
         onData(nickname, rate, per, allowance, last_check, spam, currentRoomName,conn,data, 'http');
 
     });
-    conn.on('close', function() {
+    conn.on('close', function() { //exit
         count--;
         onClose(nickname, currentRoomName);
         console.log("[" + moment().format("MMM DD HH:mm:ss") + "] \033[91mUsers connected: " + count + "\033[39m");
     });
 });
 
-
-
-
-
 // http/jsocks conf
 app.engine('html', require('ejs').renderFile);
 app.set('port', process.env.PORT || 3000);
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'html');
-//app.use(express.favicon());
-//app.use(express.logger('dev'));
-//app.use(express.json());
-//app.use(express.urlencoded());
-//a/p.use(express.methodOverride());
+app.set('view engine', 'html'); //just using ejs to serve "static" content
 app.use(express.static(path.join(__dirname, 'app')));
 
-// development only
-if ('development' == app.get('env')) {
-    //app.use(express.errorHandler());
-}
-
 app.get('/', routes.index);
-//app.get('/partials/:name', routes.partials);  //future proof
-//app.get('/*', routes.index);
+//app.get('/partials/:name', routes.partials);  //in case we ever add more pages
+//app.get('/*', routes.index); //having trouble making it work for any pages, commented for now
 
-var server = http.createServer(app).listen(app.get('port'), function() {
+var server = http.createServer(app).listen(app.get('port'), function() { //http server
     console.log('[' + moment().format('MMM DD HH:mm:ss') + '] Express server listening on port ' + app.get('port'));
 });
 chat.installHandlers(server, {
@@ -95,17 +83,14 @@ chat.installHandlers(server, {
 });
 
 
-
-
-
-
-////////////////
+///////tcp part
 //create the server
 var server = net.createServer(function(conn) {
     count++;
     console.log("[" + moment().format("MMM DD HH:mm:ss") + "] \033[92mUsers connected: " + count + "\033[39m");
 
-    //some welcoming and relaxing ascii art    
+    //some welcoming and relaxing ascii art
+    //it's supposed to be a sheep    
     conn.write(
         '\n    　　　　　　　　 ,.' + 
         '\n　　　　　 　　 /ﾉ' +
@@ -121,39 +106,28 @@ var server = net.createServer(function(conn) {
         '\n > welcome to \033[94mpi\033[93mK\033[92mchat \033[91ms\033[92me\033[93mr\033[94mv\033[95me\033[96mr\033[39m!' +
         //'\n > ' + count +
         //' other people are connected at this time to the server.' +
+        //dropped as a ui decision. might put back some day
         '\n > You are automatically placed in the lobby.' +
         '\n > Messages by >System< are only visible to you.' +
         '\n > Accepted characters: [ A-Z ][ a-z ][ 0-9 ][ _ ]' +
         '\n \033[93m> Please write your name and press enter:\033[39m '
     );
-    //count++;
-    //for keeping track of connected users
     
-
     //to stringify all incoming data
     conn.setEncoding('utf8');
-    var currentRoomName = {'value': 'lobby'}; //for keeping track in which room we are
-
-    //this timeout is pretty much useless. when a message is broadcasted,
-    //all receivers have their timeout reset. 
-    //maybe for preventing server being full with no one writing for a day?
-    /*conn.setTimeout(86400000, function(){
-          conn.write('\n > You timed-out after 24 hours. Disconnecting!\n');
-          conn.destroy();
-      });
-    */
+    var currentRoomName = {'value': 'lobby'}; //for keeping track in which room we are, default to lobby
 
     // the user nickname for the current connection
     var nickname={'value':undefined};
-    //console.log(nickname.value);
     var rate = {'value':5000}; // unit: messages
     var per  = {'value':7000}; // unit: seconds
     var allowance = {'value':rate.value}; // unit: messages
     var last_check = {'value':Date.now()}; // floating-point, e.g. usec accuracy. Unit: seconds
     var spam={'value':0};
-
-
-    //this is the entry point of the first input
+    //same as the http websocket configuration 
+    
+    //difference with http websocket is the string type, which we use in the rest of the code to
+    //differentiate between the two types of users
     conn.on('data', function(data) {
        onData(nickname, rate, per, allowance, last_check, spam, currentRoomName,conn,data, 'tcp');
     });
@@ -187,6 +161,7 @@ setInterval(function() {
                         console.log('[' + moment().format("MMM DD HH:mm:ss") +
                             '] Catch: Something went wrong with deleting room.');
                     }
+                    //just in case, has potential for things going wrong here
                 }
             }
         }
@@ -199,7 +174,7 @@ function onClose (nickname, currentRoomName) {
         for (i in rooms) {
             for (var j in rooms[i]) {
                 delete rooms[i][j]['value'][nickname.value];
-                //delete nickname in all rooms possible. Should be better than checking conditionally for specific room
+                //delete nickname in all rooms possible. Should be more efficient than checking conditionally for specific room
             }
         }
         broadcast(' \033[92m>PIKCHAT<\033[39m ' + '\033[90m' + nickname.value +
@@ -209,10 +184,11 @@ function onClose (nickname, currentRoomName) {
 
 
 function onData (nickname, rate, per, allowance, last_check, spam, currentRoomName,conn,data,type) {
+    //calculations for message rate limiting
     var current = Date.now();
     var time_passed = current - last_check.value;
     last_check.value = current;
-
+    //increase time it takes to regenerate "tokens" if user is spamming
     if (spam.value > 5) {
         if (spam.value>10) per.value=30000;
         else if (spam.value>15) per.value=60000;
@@ -222,31 +198,34 @@ function onData (nickname, rate, per, allowance, last_check, spam, currentRoomNa
     else {
         per.value = 7000;
     }
+    //token bucket algorithm
     allowance.value += time_passed * (rate.value / per.value);
     if (allowance.value > rate.value) {
-        allowance.value = rate.value; // throttle
-        if (spam.value>0) spam.value--;
+        allowance.value = rate.value; //throttle
+        if (spam.value>0) spam.value--; //decrease spam levels
     }
     if (allowance.value < 1000) {
-        //discard_message;
+        //discard message;
         spam.value++;
         conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' + 'You have hit the message limit. \nPlease wait a few seconds and try again.\n');
         if (spam.value>5) conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] >System< ' + 'You will have to wait longer than usual, because you have been spamming.\n');
     }
     else {
+        //allowed to send
         allowance.value -= 1000;
-        if (spam.value>0) spam.value--;
+        if (spam.value>0) spam.value--; //decrease spam even more
         data = data.trim();
         if ((type== 'http') &&(!data.match(/^##/))) conn.write('[' + moment().format("MMM DD HH:mm:ss") +'] >You< ' + data);
-        // the first piece of data we expect is the nickname
-        if (!nickname.value) { //see if it fits all the criteria
-            if (users[data]) {
+        //print everything the http users write, so he/she knows what he/she wrote, however, ignore things starting with hashtags as that is proccessed in another place
+        //the first piece of data we expect is the nickname
+        if (!nickname.value) { //nickname not set, i.e just connected user
+            if (users[data]) { 
                 conn.write(
                     '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + '\033[93mThat nickname is already in use. Please try again.\033[39m\n'
                 );
-                return;
+                return; //have to set name before being allowed to send messages
             } 
-            else if (data.length > 20) { //because nobody wants enourmous names. 14 seems reasonable
+            else if (data.length > 20) { //because nobody wants enourmous names. 20 seems reasonable
                 conn.write(
                     '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +'\033[93mYour name is too long (>20 chars). Please try again.\033[39m\n'
                 );
@@ -258,7 +237,7 @@ function onData (nickname, rate, per, allowance, last_check, spam, currentRoomNa
                 );
                 return;
             } 
-            else if (!data.match(/^[A-Za-z0-9_]{2,}$/)) {
+            else if (!data.match(/^[A-Za-z0-9_]{2,}$/)) { //spaces create problems with /whisper implementation. I think it is better without spaces
                 conn.write(
                     '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +
                     '\033[93mOnly letters, digits, and underscore are accepted. You need at least 2 characters. Please try again.\033[39m\n'
@@ -271,7 +250,7 @@ function onData (nickname, rate, per, allowance, last_check, spam, currentRoomNa
                 );
                 return;
             } 
-            else if ((data.toLowerCase() == "admin") || (data
+            else if ((data.toLowerCase() == "admin") || (data  //eventually will have some way to login as admin and have special commands
                     .toLowerCase() == "mod") || (data.toLowerCase() ==
                     "administrator") || (data.toLowerCase() ==
                     "moderator") || (data.toLowerCase() ==
@@ -286,10 +265,10 @@ function onData (nickname, rate, per, allowance, last_check, spam, currentRoomNa
                 );
                 return;
             } 
-            else { //it fits the criteria!
+            else { //the entered name doesn't conflict with any of the rules
                 nickname.value = data;
                 users[nickname.value] = conn;
-                rooms[0][0]['value'][nickname.value] = conn; //room[0][0] is the lobby
+                rooms[0][0]['value'][nickname.value] = conn; //room[0][0] is the lobby, and lobby is default, so hardcoded
                 conn.write(
                     '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +'You \033[92mJOINED\033[39m the server and "\033[93mlobby\033[39m" room as user \033[96m' +
                     nickname.value + '\033[39m\nYou can get a list of commands by typing "/\help"\n'
@@ -304,7 +283,7 @@ function onData (nickname, rate, per, allowance, last_check, spam, currentRoomNa
             processData(data, nickname, conn, currentRoomName, type);
         }
 
-    } //bucket function
+    } //token bucket function end
 }
 
 
@@ -331,7 +310,8 @@ function processData(data, nickname, conn, currentRoomName, type) {
         listRooms(currentRoomName, conn);
     } 
     else if (data.match(/^\/whisper|^\/w/)) {
-        try { //have to do some bothersome parsing, but not worth it bringing a parsing module just for this
+        try { 
+            //primitive efforts at parsing
             data = data.trim();
             var name = data.split(/\s+/)[1];
             name = name.trim();
@@ -374,7 +354,7 @@ function processData(data, nickname, conn, currentRoomName, type) {
             '\n Q: How do I change my name?' +
             '\n A: You have to exit the server and rejoin to get a new name.' +
             '\n Q: Why is the time off by a few hours?' +
-            '\n A: pikChat uses server time for everybody, for now at least. Server is in London, so UK time.' +
+            '\n A: pikChat uses server time for everybody, for now at least. Server timezone is EST (GMT -5).' +
             '\n Q: What is the message rate limit?' +
             '\n A: You can send 5 messages/commands every 7 seconds. If you spam a lot you will get less messages per 7 seconds until you calm down.' +
             '\n Q: What are all these hashtags?' +
@@ -390,7 +370,7 @@ function processData(data, nickname, conn, currentRoomName, type) {
 
     } 
     else if (data == "/leave") {
-        //reusing the /join here. This is what the /leave is supposed to do, right?
+        //reusing the /join here. This is what the /leave is supposed to do after all, join the lobby.
         if (currentRoomName['value'] != 'lobby') {
             changeRoom('lobby', nickname, conn, currentRoomName);
         } else {
@@ -401,7 +381,7 @@ function processData(data, nickname, conn, currentRoomName, type) {
         }
     } 
     else if (data.match(/^\/join/)) {
-        //some mild parsing again, but not as bad the the /whisper parsing
+        //getting better at this parsing thing!
         var pass = false;
         try {
             data = data.split(/\s+/)[1];
@@ -430,7 +410,7 @@ function processData(data, nickname, conn, currentRoomName, type) {
 
     } 
     else if (data.match(/^\/create/)) {
-        //some mild parsing again, but not as bad the the /whisper parsing
+        //yay, more parsing!
         var pass = false;
         try {
             data = data.split(/\s+/)[1];
@@ -451,7 +431,7 @@ function processData(data, nickname, conn, currentRoomName, type) {
                     );
                     pass=false;
                 }
-            if (data.length > 20) { //because nobody wants enourmous names. 14 seems reasonable
+            if (data.length > 20) { //because nobody wants enourmous names. 20 seems reasonable
                 conn.write(
                     '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +'\033[93mYour room name is too long (>20 chars). Please try again.\033[39m\n'
                 );
@@ -466,7 +446,6 @@ function processData(data, nickname, conn, currentRoomName, type) {
             for (var i in rooms) { //go through all array elements (rooms)
                 for (var j in rooms[i]) {
                     if (rooms[i][j]['name'] === data) { //check if room name from the array equals the argument name
-                        //changeRoom(data, nickname, conn, currentRoomName);
                         pass2 = false;
                     }
                 }
@@ -480,21 +459,22 @@ function processData(data, nickname, conn, currentRoomName, type) {
         }
 
     }
-    else if (data.match(/^###?/)) {
-        var searchType = 'stickers';
-        if (data.match(/^###/)) {
-            searchType='gifs';
+    else if (data.match(/^###?/)) {  //okay, so the frontend parses things like these: 37###lol, 75##lol, 1###ryan gosling, 23###funny cat
+        var searchType = 'stickers'; //two hashtags means a sticker, three a gif. more than that and nothing is done about them
+        var validHash = true;        //the number infront specifiecs which out of all the images with that tag will be chosen
+        if (data.match(/^###/)) {    //users should be able to send a gif/sticker just based on a tag, don't have to search for a specific image
+            searchType='gifs';       //this part of the code makes sure to put a number for an image that exists in the giphy gif database
+        }
+        if (data.match(/^####+/)) {
+            validHash=false;
         }
         num = 0;
         var msgText = data;
-        var msgBackup = msgText;
-        //msgText=msgText.replace(/#/g, ' ');
+        var msgBackup = msgText;        
         msgText = msgText.replace(/\W/g, ' ');
-        var tags=msgText.trim().split(/\s+/g);
-
-        //for ( i = 0; i < tags.length; i++) {console.log('tag:' + tags[i])};
+        var tags=msgText.trim().split(/\s+/g); //maybe I really should have used a parsing library
         var querystring = '';
-        var first=true;
+        var first=true; //forming the search query properly
         for ( i = 0; i < tags.length; i++) {
           if ((!tags[i].match(/\s+/))||(tags[i]=='')) {
             if (first==true) {
@@ -506,19 +486,17 @@ function processData(data, nickname, conn, currentRoomName, type) {
             } 
           }
         }
-        if (querystring=='') {
+        if ((querystring=='')||(validHash==false)) {  //non-valid hashtag request string. Into the trash it goes.
             broadcast('\033[96m >' + nickname.value + '<\033[39m ' + data + '\n',false, nickname, currentRoomName);
             if (type=='http') conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>You<\033[39m '+ data +'\n');
         }
-        else {
+        else { //the giphy api has some translation services, probably a tad better than search, but much harder to implement same image for everyone in chat
             request('http://api.giphy.com/v1/'+searchType+'/search?q='+ querystring +'&limit=1&api_key='+apiKey, function (error, response, body) {
               if (!error && response.statusCode == 200) {
                 body = JSON.parse(body);
                 try {
                     var total=body.pagination.total_count;
-                    //console.log('total=' + total);
-                    var num = Math.floor(Math.random() * (total-1 - 0 + 1)) + 0;
-                    //console.log(num);
+                    var num = Math.floor(Math.random() * (total-1 - 0 + 1)) + 0; //cool random function I found
                     broadcast('\033[96m >' + nickname.value + '<\033[39m ' + num + data + '\n',
                     false, nickname, currentRoomName);
                     conn.write(
@@ -534,20 +512,17 @@ function processData(data, nickname, conn, currentRoomName, type) {
               else {
                 broadcast('\033[96m >' + nickname.value + '<\033[39m ' + num + data + '\n',
                 false, nickname, currentRoomName);
-            conn.write(
+                conn.write(
                     '[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>You<\033[39m '+ num + data +'\n'
                 );
 
               }
-            }) 
-
-        }
-
-        
-        
+            }) //end of request
+        } //end of else for valid search string
     } 
     else {
-        // if we have the name and it is not a command, it can only be a message
+        //if we have the name and it is not a command, it can only be a message
+        //finally just a regular message
         broadcast('\033[96m >' + nickname.value + '<\033[39m ' + data + '\n',
             false, nickname, currentRoomName);
     }
@@ -604,9 +579,9 @@ function changeRoom(data, nickname, conn, currentRoomName) {
                     broadcast(' \033[92m>PIKCHAT<\033[39m ' + '\033[90m' + nickname.value +
                         ' \033[91mLEFT\033[39m \033[90mthe "' + currentRoomName['value'] + '" room\033[39m\n', false, nickname,
                         currentRoomName);
-                    delete rooms[i][j]['value'][nickname.value];
-                    currentRoomName['value'] = data;
-                    var stopLoop=true;
+                    delete rooms[i][j]['value'][nickname.value]; //remove from room we are in
+                    currentRoomName['value'] = data; //change to future room, inside connection
+                    var stopLoop=true; //unexpected behaviour prevention
                     break; //so that it doesn't end up being recursive and causing unexpected behaviour
                 }
             }
@@ -614,12 +589,13 @@ function changeRoom(data, nickname, conn, currentRoomName) {
         for (var i in rooms) { //go through all array elements (rooms)
             for (var j in rooms[i]) {
                 if (rooms[i][j]['name'] === data) { //check if room name from the array equals the argument name
-                    rooms[i][j]['value'][nickname.value] = conn;
+                    rooms[i][j]['value'][nickname.value] = conn; //join the new room
                     conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' + '<< You are now in room: "\033[93m' + data + '\033[39m" >>\n'); 
                     broadcast(' \033[92m>PIKCHAT<\033[39m ' + '\033[90m' + nickname.value +
                         ' \033[92mJOINED\033[39m \033[90mthe "'+ currentRoomName['value'] +'" room\033[39m\n', false,
                         nickname, currentRoomName);
-                    getUsers(conn, nickname, currentRoomName);
+                    getUsers(conn, nickname, currentRoomName); //a bit against this as an UI choice due to cluttering, but I can live with it
+                    //however I removed the >joining room from the requirements. I belive it is for the best.
                 }
             }
         }
@@ -628,10 +604,11 @@ function changeRoom(data, nickname, conn, currentRoomName) {
 
 function createRoom(data, conn) {
     try {
+        //done in an obscure way, so that a property name can be a variable as well
         var object = {};
         var myVar = roomNumbers;
-        roomNumbers++;
-        object[myVar] = {
+        roomNumbers++; //keeping track of room numbers, especially deleted ones would be really bothersome
+        object[myVar] = {  //just incrementing all new rooms. with a 53 bit mantissa, someone would have to create a lot of rooms to crash the server
             'name': data,
             'value': {}
         };
@@ -655,11 +632,13 @@ function getAllUsers(conn, nickname) {
     conn.write('\n << End of user list >>\n');
     conn.write('[' + moment().format("MMM DD HH:mm:ss") + '] \033[91m>System<\033[39m ' +
     'Users in server: \033[92m' + count + '\033[39m\n');
+    //users could probably be used to send global messages. but that should be reserved for admins only
 }
 
 
 function whisper(msg, receiver, nickname, conn) {
-
+    //I wanted whispers to have their own color, so that they stand out. Having a user named "whisper" is a cool way to do that
+    //shortcoming: no way to block someone whispering you in the web client. A better implementation on the to-do list.
     if (nickname.value != receiver) {
         users[receiver].write('[' + moment().format("MMM DD HH:mm:ss") + ']\033[95m >#whisper#< FROM: ' + nickname.value + ' MSG: ' + msg +
             '\033[39m\n');
