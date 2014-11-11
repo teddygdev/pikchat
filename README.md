@@ -80,7 +80,7 @@ Technologies used in the project: Node.js and AngularJS, with a sprinkle of Sock
 7. Edit `PikchatServer.js` if you would like the HTTP server to listen on another port. Default one is 3000   
   * You are looking for this line:
   * `app.set('port', process.env.PORT || 3000);` 
-8. Edit `app/chat.js` if you would like the HTTP server fronted to run on anything different than localhost and port 3000
+8. Edit `app/js/chat.js` if you would like the HTTP server fronted to run on anything different than localhost and port 3000
   * You are looking for this line:
   * `var sock = new SockJS('http://localhost:3000/chat');`
   * Replace localhost with whatever IP the server will be hosted on
@@ -101,7 +101,7 @@ Technologies used in the project: Node.js and AngularJS, with a sprinkle of Sock
 
 ## Demo
 You can connect to my server as a client: `telnet pikchat.me 4000`
-You can visit the website: `http://www.pikchat.me/`
+You can visit the website: http://www.pikchat.me/
 
 ## Credits
 I would like to thank Guillermo Rauch for his book Smashing Node.js : JavaScript everywhere. Thanks to his TCP server starter, I was able to go in the right direction from the beginning!
