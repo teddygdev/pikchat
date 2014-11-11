@@ -3,84 +3,108 @@
 [![forthebadge](http://forthebadge.com/badges/made-with-crayons.svg)](http://forthebadge.com)
 
 
-TCP Chat Server + (to be impemented) Web Frontend. Focus (will be) on communication through images/stickers.
+(Super Awesome) TCP Chat Server + Web Frontend. Mobile Friendly. Engaging! Focus on colors, images, and feel.
 
-Technologies used in the project: Node.js
+Technologies used in the project: Node.js and AngularJS, with a sprinkle of SockJS.
 
-Source to ASCII art: http://around140.en.utf8art.com/arc/goat_3.html
-
-Created by Teddy G for a job interview.
 
 ## Features
-  * Super scalable!
-  * Low resource requirements!
-  * A total of 8 super awesome rooms, including a lobby!
-  * Pretty colors!
-  * Promotes synergy!
-  * Send private messages!
-  * Anti-spying! The server doesn't log any messages or IPs!
-  * List all users in a room!
-  * Why stop there?!?! List all users connected to the server!
-  * Easy login! No pesky passwords to remember!
-  * Cross-room private messaging!
-  * Mega intuitive! If stuck, just enter `/help`
-  * Disclaimer: Doesn't really have cat gifs... YET!
+  * Brand new spin on the semi-anomymous multi-user chatroom!
+  * Commmunicate through an easy to use web interface, which is very mobile friendy.
+  * Send Stickers/GIFs to each other using a state of the art translational engine.
+  * No need to bother with links, downloading packages, or image hosting! -> just describe the image with words.
+  * Using tags to send stickers is so easy and so intuitive that you might think it reads your mind!
+  * But what about when I want some small picture to express my emotions with my text? Use EMOJI as well!
+  * Colorful, yet easy on the eyes. Completely say goodbye to bland chatting.
+  * Cutting edge color generating algorithm will make you fall in love with the interface!
+  * Invite all your friends! No registration required! No pesky passwords to remember!
+  * Create your own room. Hang out with your best buds!
+  * Complete privacy! No IPs logged, no chat logs saved.
+  * Ignore the people you dislike with a simple click. They'll never know you did it!
+  * Ultramodern spam protection.
+  * Designed by a team of world-class UI scientists. 
+  * Voted most likely to be "Website of the decade!". Possible runner-up for "Website of the century".
+  * Super responsive design! Stunning looks and perfect usability on any screen, any size.
+  * Never dig through tons of messages to find just a few things. Use real-time filtering! Filter anything!
+  * Need to be in two different rooms at the same time? Open two tabs! Unlimited sessions per IP!
+  * Need to tell another user a secret? Use a whisper! Whispers are private messages dones right!
+  * Running on a potato and want to keep with your friends? Join the server through telnet!
+  * Mobile bandwith got you down? Internet not as fast? Use downsampled GIFs to reduce traffic and increase speed!
+  * Respects your freedom! Free as in free speech! 
+  * Funny cat GIFs! Need I say more?
+  * You have to try it to believe it!
+  * Yes, seriously, try it out! Go to http://pikchat.me/ right now!
+  * On a potato? "telnet pikchat.me 4000" from your friendly GNU/Linux terminal.
 
-## Planned features
-  * web interface
-  * cat gifs!
-  * use the giphy api to send stickers
-  * mobile friendly!
-  * room administration
-  * room moderation!
-  * utilize Redis for storing data
-  * angular.js frontend
+## Implementation Features 
+  * Due to node.js scalability, should be extremely scalable.
+  * Very lightweight with very low resource requirements.
+  * Provides a very good base, should be a cinch to implement more features on top.
+
+## Lack of Unit Tests
+  * Unit Testing for this project turned out to be non-trivial, contrary to my expectations. 
+  * As bad as it sounds, unit tests had to be dropped to allow for a more complete product.
+  * This chart was consulted: http://xkcd.com/1205/
+  * However, in no way was testing skipped. Meticulous hand-testing was performed to ensure top quality.
+  * The call had to be made, and given the circumstances, more features was the choice I made.
+
+## Other Shortcomings / To-do list
+  * The current architecture while very good, is not perfect. An "ignore" terminal implementation is much more time consuming than expected. Requires a fair bit of thought.
+  * Could potentially benefit from some security features. While I've done my best, I am no security expert.
+  * No administration/moderation implementation. However, very easily remedied.
+  * A lot is still done through text commands rather than the web GUI. Again, very easily remedied.
+  * Unicode values of emojis are not supported. (e.g. sending them through your phone). Most likely a trivial solution.
+  * Absolutely no logging of messages/users. While some might say it is a design decision, I consider it a shortcoming.
+  * Lack of notifications. Ideas: sounds and favicon number for unread messages. Again, easily remedied.
+
+## Thoughts
+  * Overall, I put in a lot of work in this project and I very proud of both the result and myself. 
+
+
 
 ## How to install on Ubuntu 14.10
 1. Open the Terminal
 2. `git clone https://github.com/teddygdev/pikchat.git` (Clone the repository)
   * Install GIT if not present on the system
   * `sudo apt-get install git-core`
-3. Go into the folder where the pikchat reposity was clone.
+3. Go into the folder where the pikchat reposity was cloned.
   * You are looking for the `PikchatServer.js` file
 4. Install nodejs and npm if not present on the system
   * `sudo apt-get install nodejs`
   * `sudo apt-get install npm`
 5. Once inside the folder (in the terminal), run `npm -install` to install the piKchat dependencies
-6. Edit `PikchatServer.js` if you would like the server to listen on another port. Default one is 3000
-  * You are looking for this line. It is near the bottom.
-  * `server.listen(3000, function() {`
-7. Finally, start the server with `nodejs PikchatServer.js`
-8. Enjoy the fruits of my labor
+6. Edit `PikchatServer.js` if you would like the TCP server to listen on another port. Default one is 4000
+  * You are looking for this line:
+  * `server.listen(4000, function() {
+    console.log('[' + moment().format('MMM DD HH:mm:ss') + '] TCP server listening on port 4000');`
+7. Edit `PikchatServer.js` if you would like the HTTP server to listen on another port. Default one is 3000   
+  * You are looking for this line:
+  * `app.set('port', process.env.PORT || 3000);` 
+8. Edit `app/chat.js` if you would like the HTTP server fronted to run on anything different than localhost and port 3000
+  * You are looking for this line:
+  * `var sock = new SockJS('http://localhost:3000/chat');`
+  * Replace localhost with whatever IP the server will be hosted on
+  * Make sure the port matches the port from step 7!
+9. Finally, start the server with `nodejs PikchatServer.js`
+10. Enjoy the fruits of my labor
 
 ## How to connect
 1. `telnet x.x.x.x 3000` from the terminal and just wing it from there. I've made it very intuitive.
   * `x.x.x.x` is the IP of the server. If running locally, it would be `localhost` or `127.0.0.1`
+  * If you changed the port in step 6, put that port instead.
   * Please do not use the windows commandline for telnet. You will greatly regret it.
-  * Putty is also not the best choice. At least it is less broken than cmd telnet.
-  * Best way to use it is from your friendly GNU/Linux terminal. Maybe OS X will work really awesome too.
+  * Putty is also not the best choice. However, at least it is less broken than cmd telnet.
+  * Best way to use it is from your friendly GNU/Linux terminal. Maybe OS X will work really awesomely as well.
+2. Visit `http://x.x.x.x:3000/` to checkout the web interface.
+  * `x.x.x.x` is the IP of the server. If running locally, it would be `localhost` or `127.0.0.1`
+  * If you changed the port in step 7, put that port instead.
 
 ## Demo
-You can connect to my server as a client: `telnet pikchat.me 3000`
-
-## More about the project
-### Or the story explaining why pikchat doesn't have pictures
-
-Originally, when I started the project, I did not have the slightest clue about how node.js works. I had been intimidated by node.js for some time and had failed to pick it up on multiple occassions. However, after some research, I found out it would suite my requirements for this project perfectly. 
-
-The idea was to have node.js running in the background and have a angular.js web frontend. It was supposed to extremely interactive and pleasant to use. I did some prototyping, found some really cool examples, socket.io was a blast... it was going to be amazing. My vision was to make a more chatty and fluid imageboard.
-
-Halfway through the project, by the time I am getting down to the nitty-gritty parts, I realize a node http server is not going to work. In order to use telnet (required by the... requirements) I would have to implement a TCP server. It's probably a good idea to share that I don't know that much about TCP, have only used telnet to play starwars in the command prompt (telnet towel.blinkenlights.nl), have never really used chat rooms and not really familiar with how they work, first time using node.js... you get the idea. No biggie, I'll just put the http server on the backburner and quickly do the TCP server, so that I can get back to http faster. After all, how hard could it be?
-
-Well, very hard, especially for a newbie. The last few days have been a mad dash to finish at least the basics of the TCP server. I wasn't even sure if I would make it in time. On the flipside, I learned more about TCP, cloud servers, and node.js from my one week coding sprint than I ever learned about those technologies in school or at work. I am really sad I had to scrap the web part of the project... at least for now. I really plan on getting back to this project soon, after all, why buy a domain and cloud hosting if you are not going to use it?
-
-Overall, I am really happy how the TCP part turned out. Taking in all that knowledge was overwhelming, but extremely satisfying at the same moment. However, I did have to cut some corners to meet the deadline. The most evident being: no automated testing and hardcoded rooms. Luckily node.js is there to pick up my slack. It was really the best choice, as even with ~300 connections, the cloud server barely goes above 1% CPU usage. 
-
-In conclusion, I would like to finish with a quote by Albert Camus. 
-“I leave Sisyphus at the foot of the mountain. One always finds one's burden again. But Sisyphus teaches the higher fidelity that negates the gods and raises rocks. He too concludes that all is well. This universe henceforth without a master seems to him neither sterile nor futile. Each atom of that stone, each mineral flake of that night-filled mountain, in itself, forms a world. The struggle itself toward the heights is enough to fill a man's heart. One must imagine Sisyphus happy.”
-The way I see it, no matter how the interview goes, the struggle towards fulfilling the interview task was the most fulfilling for me. I learned so much in such a small time frame, knowledge I did not plan on acquiring anytime soon. And especially cloud servers and node.js, they opened so many doors, almost instantly. Both of those make so many future project possible, it is hard to imagine now not knowing how to work with those. Thank you for giving me this opportunity. I gained hundreds of times more from this interview than I initially thought I would.
+You can connect to my server as a client: `telnet pikchat.me 4000`
+You can visit the website: `http://www.pikchat.me/`
 
 ## Credits
-I would like to thank Guillermo Rauch for his book Smashing Node.js : JavaScript everywhere. Thanks to his TCP server starter, all of this is possible!
+I would like to thank Guillermo Rauch for his book Smashing Node.js : JavaScript everywhere. Thanks to his TCP server starter, I was able to go in the right direction from the beginning!
 
+Source to welcoming ASCII art in terminal: http://around140.en.utf8art.com/arc/goat_3.html
 
